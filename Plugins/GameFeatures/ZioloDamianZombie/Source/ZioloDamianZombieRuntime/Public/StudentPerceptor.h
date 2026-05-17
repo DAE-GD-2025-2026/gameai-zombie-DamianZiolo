@@ -23,4 +23,12 @@ public:
 
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	
+private:
+	UPROPERTY()
+	TArray<TObjectPtr<AActor>> VisibleZombies;
+
+	bool IsZombie(AActor* Actor) const;
+	APawn* GetControlledPawn() const;
+	void UpdateThreatBlackboard();
 };
