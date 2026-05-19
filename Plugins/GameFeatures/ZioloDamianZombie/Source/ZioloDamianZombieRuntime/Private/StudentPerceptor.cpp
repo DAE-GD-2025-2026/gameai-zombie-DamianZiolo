@@ -34,10 +34,10 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		VisibleZombies.AddUnique(Actor);
 	}
-	else
-	{
-		VisibleZombies.Remove(Actor);
-	}
+	//else
+	//{
+	//	VisibleZombies.Remove(Actor);
+	//}
 
 	UpdateThreatBlackboard();
 }
@@ -61,6 +61,7 @@ APawn* UStudentPerceptor::GetControlledPawn() const
 
 void UStudentPerceptor::UpdateThreatBlackboard()
 {
+	
 	APawn* Survivor = GetControlledPawn();
 	if (!Survivor) return;
 

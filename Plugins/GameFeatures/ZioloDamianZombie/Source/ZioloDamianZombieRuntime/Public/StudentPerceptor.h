@@ -8,6 +8,7 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "Perception/AISense_Damage.h"
+#include "AIWorldMemoryTypes.h"
 #include "StudentPerceptor.generated.h"
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
@@ -26,7 +27,16 @@ public:
 	
 private:
 	UPROPERTY()
-	TArray<TObjectPtr<AActor>> VisibleZombies;
+	TArray<FKnownZombie> KnownZombies;
+	
+	UPROPERTY()
+	TArray<FKnownItem> KnowItems;
+	
+	UPROPERTY()
+	TArray<FKnownHouse> KnownHouses;
+	
+	void HandleZombiePerception(AActor* Actor, const FAIStimulus& Stimulus);
+	void CleanupExpiredZombies();
 
 	bool IsZombie(AActor* Actor) const;
 	APawn* GetControlledPawn() const;
