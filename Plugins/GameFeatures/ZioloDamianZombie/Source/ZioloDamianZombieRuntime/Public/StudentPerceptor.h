@@ -35,10 +35,15 @@ private:
 	UPROPERTY()
 	TArray<FKnownHouse> KnownHouses;
 	
-	void HandleZombiePerception(AActor* Actor, const FAIStimulus& Stimulus);
+	void HandleZombiePerception(AActor* Actor);
 	void CleanupExpiredZombies();
 
 	bool IsZombie(AActor* Actor) const;
 	APawn* GetControlledPawn() const;
 	void UpdateThreatBlackboard();
+	
+	
+	
+	
+	const float MemoryDuration = 5.f;
 };
