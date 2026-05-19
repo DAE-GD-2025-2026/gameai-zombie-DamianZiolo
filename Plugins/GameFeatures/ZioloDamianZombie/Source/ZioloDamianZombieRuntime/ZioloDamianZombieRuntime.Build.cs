@@ -39,7 +39,8 @@ public class ZioloDamianZombieRuntime : ModuleRules
 				"Slate",
 				"SlateCore",
 				"AIModule",
-				"GAMEAI_ZOMBIE"
+				"GAMEAI_ZOMBIE",
+				"NavigationSystem"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

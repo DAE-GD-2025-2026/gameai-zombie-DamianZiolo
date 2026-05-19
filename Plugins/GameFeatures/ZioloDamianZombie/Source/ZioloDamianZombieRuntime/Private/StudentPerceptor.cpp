@@ -1,9 +1,9 @@
-﻿// Fill out your copyright notice in the Description page of Project Settings.
+﻿#include "StudentPerceptor.h"
 
-
-#include "StudentPerceptor.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "DrawDebugHelpers.h"
+#include "NavigationSystem.h"
 #include "Zombies/BaseZombie.h"
 
 UStudentPerceptor::UStudentPerceptor()
@@ -21,6 +21,13 @@ void UStudentPerceptor::BeginPlay()
 	}
 }
 
+void UStudentPerceptor::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+{
+	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+
+	UpdateThreatBlackboard();
+}
+
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (!Actor) return;
@@ -29,12 +36,7 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		HandleZombiePerception(Actor);
 	}
-	//else
-	//{
-	//	VisibleZombies.Remove(Actor);
-	//}
-
-	UpdateThreatBlackboard();
+	
 }
 
 void UStudentPerceptor::HandleZombiePerception(AActor* Actor)
@@ -51,20 +53,18 @@ void UStudentPerceptor::HandleZombiePerception(AActor* Actor)
 		}
 	}
 	
-	//If this is a new zombie, I'm adding it to the array
 	FKnownZombie NewZombie;
 	NewZombie.Actor = Actor;
 	NewZombie.LastKnownLocation = Actor->GetActorLocation();
 	NewZombie.LastSeenTime = CurrentTime;
 	
 	KnownZombies.Add(NewZombie);
-	
 }
 
-//if ZOmbie is invalid ex. dead or MemoryExpired remove it from memory
 void UStudentPerceptor::CleanupExpiredZombies()
 {
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
+
 	for (int i = KnownZombies.Num() - 1; i >= 0; --i)
 	{
 		const bool bInvalidActor = !IsValid(KnownZombies[i].Actor);
@@ -74,7 +74,6 @@ void UStudentPerceptor::CleanupExpiredZombies()
 		{
 			KnownZombies.RemoveAt(i);
 		}
-		
 	}
 }
 
@@ -82,6 +81,7 @@ bool UStudentPerceptor::IsZombie(AActor* Actor) const
 {
 	return Actor && Actor->IsA(ABaseZombie::StaticClass());
 }
+
 APawn* UStudentPerceptor::GetControlledPawn() const
 {
 	AActor* Owner = GetOwner();
@@ -116,8 +116,8 @@ void UStudentPerceptor::UpdateThreatBlackboard()
 
 	const FVector SurvivorLocation = Survivor->GetActorLocation();
 
-	const float ThreatRange = 1500.0f; // 15 meters
-	const float FleeDistance = 1000.0f;
+	const float ThreatRange = 1500.0f;
+	const float FleeDistance = 500.0f;
 
 	FVector FleeDirection = FVector::ZeroVector;
 	AActor* ClosestZombie = nullptr;
@@ -140,17 +140,18 @@ void UStudentPerceptor::UpdateThreatBlackboard()
 
 		Away.Normalize();
 
+		//a little bit of priority to "more" evade closer enemies
 		FleeDirection += Away / Distance;
 		ThreatCount++;
 
-		if (Distance < ClosestDistance)
+		if (Distance < ClosestDistance && IsValid(KnownZombie.Actor))
 		{
 			ClosestDistance = Distance;
 			ClosestZombie = KnownZombie.Actor;
 		}
 	}
 
-	if (!ClosestZombie || FleeDirection.IsNearlyZero())
+	if (FleeDirection.IsNearlyZero())
 	{
 		Blackboard->ClearValue(TEXT("TargetZombie"));
 		return;
@@ -158,7 +159,19 @@ void UStudentPerceptor::UpdateThreatBlackboard()
 
 	FleeDirection.Normalize();
 
-	const FVector FleeLocation = SurvivorLocation + FleeDirection * FleeDistance;
+	FVector FleeLocation = SurvivorLocation + FleeDirection * FleeDistance;
+
+	if (UNavigationSystemV1* NavSystem = UNavigationSystemV1::GetCurrent(GetWorld()))
+	{
+		FNavLocation ProjectedLocation;
+
+		if (NavSystem->ProjectPointToNavigation(FleeLocation, ProjectedLocation))
+		{
+			FleeLocation = ProjectedLocation.Location;
+		}
+	}
+
+	DrawThreatDebug(SurvivorLocation, FleeDirection, FleeLocation);
 
 	Blackboard->SetValueAsObject(TEXT("TargetZombie"), ClosestZombie);
 	Blackboard->SetValueAsVector(TEXT("TargetLocation"), FleeLocation);
@@ -166,12 +179,56 @@ void UStudentPerceptor::UpdateThreatBlackboard()
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(
-			-1,
-			1.0f,
+			1,
+			0.0f,
 			FColor::Red,
-			FString::Printf(TEXT("Evading %d nearby zombie(s)"), ThreatCount)
+			FString::Printf(TEXT("Evading %d nearby zombie(s) | Known: %d"), ThreatCount, KnownZombies.Num())
 		);
 	}
 }
 
+void UStudentPerceptor::DrawThreatDebug(
+	const FVector& SurvivorLocation,
+	const FVector& FleeDirection,
+	const FVector& FleeLocation) const
+{
+	if (!GetWorld()) return;
 
+	DrawDebugSphere(
+		GetWorld(),
+		FleeLocation,
+		50.0f,
+		16,
+		FColor::Green,
+		false,
+		0.05f,
+		0,
+		3.0f
+	);
+
+	DrawDebugLine(
+		GetWorld(),
+		SurvivorLocation,
+		SurvivorLocation + FleeDirection * 500.0f,
+		FColor::Blue,
+		false,
+		0.05f,
+		0,
+		5.0f
+	);
+
+	for (const FKnownZombie& KnownZombie : KnownZombies)
+	{
+		DrawDebugSphere(
+			GetWorld(),
+			KnownZombie.LastKnownLocation,
+			40.0f,
+			12,
+			FColor::Red,
+			false,
+			0.05f,
+			0,
+			2.5f
+		);
+	}
+}

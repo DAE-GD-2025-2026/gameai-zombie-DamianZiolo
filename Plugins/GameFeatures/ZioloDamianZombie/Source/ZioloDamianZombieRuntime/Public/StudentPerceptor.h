@@ -24,6 +24,7 @@ public:
 
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
+	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 private:
 	UPROPERTY()
@@ -42,8 +43,8 @@ private:
 	APawn* GetControlledPawn() const;
 	void UpdateThreatBlackboard();
 	
-	
-	
+	void HandleDamageStimulus(AActor* Actor, const FAIStimulus& Stimulus);
+	void DrawThreatDebug(const FVector& SurvivorLocation, const FVector& FleeDirection, const FVector& FleeLocation) const;
 	
 	const float MemoryDuration = 5.f;
 };
