@@ -11,6 +11,8 @@
 #include "AIWorldMemoryTypes.h"
 #include "StudentPerceptor.generated.h"
 
+
+
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
 class ZIOLODAMIANZOMBIERUNTIME_API UStudentPerceptor : public UActorComponent
 {
@@ -26,6 +28,11 @@ public:
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
+	
+	const TArray<FKnownZombie>& GetKnownZombies() const;
+	const TArray<FKnownItem>& GetKnownItems() const;
+	const TArray<FKnownHouse>& GetKnownHouses() const;
+	
 private:
 	UPROPERTY()
 	TArray<FKnownZombie> KnownZombies;
@@ -36,14 +43,15 @@ private:
 	UPROPERTY()
 	TArray<FKnownHouse> KnownHouses;
 	
+
+	
+	
 	void HandleZombiePerception(AActor* Actor);
 	void CleanupExpiredZombies();
 
 	bool IsZombie(AActor* Actor) const;
 	APawn* GetControlledPawn() const;
 	void UpdateThreatBlackboard();
-	
-	void HandleDamageStimulus(AActor* Actor, const FAIStimulus& Stimulus);
 	void DrawThreatDebug(const FVector& SurvivorLocation, const FVector& FleeDirection, const FVector& FleeLocation) const;
 	
 	const float MemoryDuration = 5.f;
