@@ -26,7 +26,6 @@ public:
 
 	UFUNCTION()
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
-	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 	
 	
 	const TArray<FKnownZombie>& GetKnownZombies() const;
@@ -51,8 +50,5 @@ private:
 
 	bool IsZombie(AActor* Actor) const;
 	APawn* GetControlledPawn() const;
-	void UpdateThreatBlackboard();
-	void DrawThreatDebug(const FVector& SurvivorLocation, const FVector& FleeDirection, const FVector& FleeLocation) const;
-	
 	const float MemoryDuration = 5.f;
 };
