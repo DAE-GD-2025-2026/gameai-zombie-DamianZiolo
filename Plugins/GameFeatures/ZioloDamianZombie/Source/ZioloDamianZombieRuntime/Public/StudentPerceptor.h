@@ -37,18 +37,20 @@ private:
 	TArray<FKnownZombie> KnownZombies;
 	
 	UPROPERTY()
-	TArray<FKnownItem> KnowItems;
+	TArray<FKnownItem> KnownItems;
 	
 	UPROPERTY()
 	TArray<FKnownHouse> KnownHouses;
 	
 
-	
+	void HandleHousePerception(AActor* Actor);
+	bool IsHouse(AActor* Actor) const;
 	
 	void HandleZombiePerception(AActor* Actor);
+	bool IsZombie(AActor* Actor) const;
 	void CleanupExpiredZombies();
 
-	bool IsZombie(AActor* Actor) const;
+
 	APawn* GetControlledPawn() const;
 	const float MemoryDuration = 5.f;
 };

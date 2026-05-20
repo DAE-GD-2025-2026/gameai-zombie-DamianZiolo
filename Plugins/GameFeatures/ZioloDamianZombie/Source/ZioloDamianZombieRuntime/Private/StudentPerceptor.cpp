@@ -4,7 +4,9 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "DrawDebugHelpers.h"
 #include "NavigationSystem.h"
+#include "Village/House/House.h"
 #include "Zombies/BaseZombie.h"
+
 
 UStudentPerceptor::UStudentPerceptor()
 {
@@ -29,7 +31,38 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	{
 		HandleZombiePerception(Actor);
 	}
+	else if (IsHouse(Actor))
+	{
+		HandleHousePerception(Actor);
+	}
 	
+}
+
+void UStudentPerceptor::HandleHousePerception(AActor* Actor)
+{
+	if (!Actor) return;
+	
+	for (FKnownHouse& KnownHouse : KnownHouses)
+	{
+		if (KnownHouse.Actor == Actor)
+		{
+			KnownHouse.Location = Actor->GetActorLocation();
+			return;
+		}
+	}
+	
+	FKnownHouse NewHouse;
+	NewHouse.Actor = Actor;
+	NewHouse.Location = Actor->GetActorLocation();
+	NewHouse.bVisited = false;
+	
+	KnownHouses.Add(NewHouse);
+	
+}
+
+bool UStudentPerceptor::IsHouse(AActor* Actor) const
+{
+	return Actor && Actor->IsA(AHouse::StaticClass());
 }
 
 void UStudentPerceptor::HandleZombiePerception(AActor* Actor)
@@ -94,7 +127,7 @@ const TArray<FKnownZombie>& UStudentPerceptor::GetKnownZombies() const
 
 const TArray<FKnownItem>& UStudentPerceptor::GetKnownItems() const
 {
-	return KnowItems;
+	return KnownItems;
 }
 
 const TArray<FKnownHouse>& UStudentPerceptor::GetKnownHouses() const

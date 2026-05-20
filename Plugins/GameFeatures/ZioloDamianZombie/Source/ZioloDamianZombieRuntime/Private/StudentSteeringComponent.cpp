@@ -3,6 +3,7 @@
 
 #include "StudentSteeringComponent.h"
 #include "StudentPerceptor.h"
+#include "Survivor/SurvivorPawn.h"
 
 // Sets default values for this component's properties
 UStudentSteeringComponent::UStudentSteeringComponent()
@@ -43,18 +44,32 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 	
 	const TArray<FKnownZombie>& KnownZombies = Perceptor->GetKnownZombies();
+	const TArray<FKnownHouse>& KnownHouses = Perceptor->GetKnownHouses();
 	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
 
 	FVector MovementDirection = FVector::ZeroVector;
 	
-	CurrentMode = HasNearbyThreat(KnownZombies, OwnerLocation)
-		? ESteeringMode::Flee
-		: ESteeringMode::Wander;
+	if (HasNearbyThreat(KnownZombies, OwnerLocation))
+	{
+		CurrentMode = ESteeringMode::Flee;
+	}
+	else if (HasKnownUnvisitedHouse(KnownHouses))
+	{
+		CurrentMode = ESteeringMode::SeekHouse;
+	}
+	else
+	{
+		CurrentMode = ESteeringMode::Wander;
+	}
 
 	switch (CurrentMode)
 	{
 	case ESteeringMode::Flee:
 		MovementDirection = CalculateFleeDirection(KnownZombies, OwnerLocation);
+		break;
+
+	case ESteeringMode::SeekHouse:
+		MovementDirection = CalculateSeekHouseDirection(OwnerPawn, KnownHouses);
 		break;
 
 	case ESteeringMode::Wander:
@@ -216,3 +231,109 @@ void UStudentSteeringComponent::RotateTowardsMovement(
 	OwnerPawn->SetActorRotation(NewRotation);
 }
 
+bool UStudentSteeringComponent::HasKnownUnvisitedHouse(const TArray<FKnownHouse>& KnownHouses) const
+{
+	for (const FKnownHouse& House : KnownHouses)
+	{
+		if (IsValid(House.Actor) && !House.bVisited)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
+	APawn* OwnerPawn,
+	const TArray<FKnownHouse>& KnownHouses)
+{
+	if (!OwnerPawn)
+	{
+		return FVector::ZeroVector;
+	}
+
+	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
+
+	FKnownHouse BestHouse;
+	float BestDistance = FLT_MAX;
+	bool bFoundHouse = false;
+
+	for (const FKnownHouse& House : KnownHouses)
+	{
+		if (!IsValid(House.Actor) || House.bVisited)
+		{
+			continue;
+		}
+
+		const float Distance = FVector::Dist2D(OwnerLocation, House.Location);
+
+		if (Distance < BestDistance)
+		{
+			BestDistance = Distance;
+			BestHouse = House;
+			bFoundHouse = true;
+		}
+	}
+
+	if (!bFoundHouse)
+	{
+		CurrentHouseTarget = nullptr;
+		CurrentPath.Empty();
+		CurrentPathIndex = 0;
+		return FVector::ZeroVector;
+	}
+
+	if (CurrentHouseTarget != BestHouse.Actor || CurrentPath.IsEmpty())
+	{
+		CurrentHouseTarget = BestHouse.Actor;
+		BuildPathToLocation(OwnerPawn, BestHouse.Location);
+	}
+
+	return CalculateFollowPathDirection(OwnerPawn);
+}
+
+void UStudentSteeringComponent::BuildPathToLocation(APawn* OwnerPawn, const FVector& TargetLocation)
+{
+	ASurvivorPawn* Survivor = Cast<ASurvivorPawn>(OwnerPawn);
+	if (!Survivor)
+	{
+		CurrentPath.Empty();
+		CurrentPathIndex = 0;
+		return;
+	}
+
+	CurrentPath = Survivor->CalculatePath(TargetLocation);
+	CurrentPathIndex = CurrentPath.Num() > 1 ? 1 : 0;
+}
+
+FVector UStudentSteeringComponent::CalculateFollowPathDirection(APawn* OwnerPawn)
+{
+	if (!OwnerPawn || CurrentPath.IsEmpty() || !CurrentPath.IsValidIndex(CurrentPathIndex))
+	{
+		return FVector::ZeroVector;
+	}
+
+	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
+
+	FVector CurrentWaypoint = CurrentPath[CurrentPathIndex];
+
+	if (FVector::Dist2D(OwnerLocation, CurrentWaypoint) <= WaypointReachDistance)
+	{
+		CurrentPathIndex++;
+
+		if (!CurrentPath.IsValidIndex(CurrentPathIndex))
+		{
+			CurrentPath.Empty();
+			CurrentPathIndex = 0;
+			return FVector::ZeroVector;
+		}
+
+		CurrentWaypoint = CurrentPath[CurrentPathIndex];
+	}
+
+	FVector Direction = CurrentWaypoint - OwnerLocation;
+	Direction.Z = 0.0f;
+
+	return Direction;
+}

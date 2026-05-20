@@ -46,7 +46,8 @@ private:
 	enum class ESteeringMode
 	{
 		Wander,
-		Flee
+		Flee,
+		SeekHouse
 	};
 
 	ESteeringMode CurrentMode = ESteeringMode::Wander;
@@ -54,5 +55,21 @@ private:
 	FVector CalculateFleeDirection(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
 	FVector CalculateWanderDirection(APawn* OwnerPawn, float DeltaTime);
 	void RotateTowardsMovement(APawn* OwnerPawn, const FVector& Direction, float DeltaTime) const;
-		
+	
+	bool HasKnownUnvisitedHouse(const TArray<FKnownHouse>& KnownHouses) const;
+	FVector CalculateSeekHouseDirection(APawn* OwnerPawn, const TArray<FKnownHouse>& KnownHouses);
+	
+	UPROPERTY()
+	TArray<FVector> CurrentPath;
+
+	int32 CurrentPathIndex = 0;
+
+	UPROPERTY()
+	TObjectPtr<AActor> CurrentHouseTarget = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "Path Following")
+	float WaypointReachDistance = 100.0f;
+	
+	void BuildPathToLocation(APawn* OwnerPawn, const FVector& TargetLocation);
+	FVector CalculateFollowPathDirection(APawn* OwnerPawn);
 };
