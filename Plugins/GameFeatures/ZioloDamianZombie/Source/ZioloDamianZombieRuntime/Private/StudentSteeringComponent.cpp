@@ -4,8 +4,10 @@
 #include "StudentSteeringComponent.h"
 #include "StudentPerceptor.h"
 #include "Items/BaseItem.h"
+#include "Items/Weapon.h"
 #include "Common/InventoryComponent.h"
 #include "Survivor/SurvivorPawn.h"
+#include "DrawDebugHelpers.h"
 
 // Sets default values for this component's properties
 UStudentSteeringComponent::UStudentSteeringComponent()
@@ -62,6 +64,18 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 	
 	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
+	
+	const bool bHasWeapon = HasWeapon(OwnerPawn);
+	
+	DrawDebugString(
+	GetWorld(),
+	OwnerLocation + FVector(0, 0, 120.0f),
+	bHasWeapon ? TEXT("HAS WEAPON") : TEXT("NO WEAPON"),
+	nullptr,
+	bHasWeapon ? FColor::Green : FColor::Red,
+	0.0f,
+	true
+);
 
 	FVector MovementDirection = FVector::ZeroVector;
 	
@@ -97,11 +111,128 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 	OwnerPawn->AddMovementInput(MovementDirection, 1.0f);
 
-	RotateTowardsMovement(OwnerPawn, MovementDirection, DeltaTime);
+	if (CurrentMode == ESteeringMode::Flee && HasWeapon(OwnerPawn))
+	{
+		AActor* ClosestZombie = GetClosestZombie(KnownZombies, OwnerLocation);
+
+		if (ClosestZombie)
+		{
+			RotateTowardsTarget(OwnerPawn, ClosestZombie->GetActorLocation(), DeltaTime);
+			TryShootClosestZombie(OwnerPawn, KnownZombies);
+		}
+	}
+	else
+	{
+		RotateTowardsMovement(OwnerPawn, MovementDirection, DeltaTime);
+	}
+}
+
+bool UStudentSteeringComponent::HasWeapon(APawn* OwnerPawn) const
+{
+	if (!OwnerPawn) return false;
+
+	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
+	if (!Inventory) return false;
+	
+	for (ABaseItem* Item : Inventory->GetInventory())
+	{
+		if (!Item) continue;
+
+		if (Item->GetItemType() == EItemType::Pistol ||
+			Item->GetItemType() == EItemType::Shotgun)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UStudentSteeringComponent::TryShootClosestZombie(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies)
+{
+	if (!OwnerPawn) return false;
+
+	ASurvivorPawn* Survivor = Cast<ASurvivorPawn>(OwnerPawn);
+	if (!Survivor) return false;
+
+	AActor* ClosestZombie = GetClosestZombie(KnownZombies, OwnerPawn->GetActorLocation());
+	if (!ClosestZombie) return false;
+
+	const float Distance = FVector::Dist2D(OwnerPawn->GetActorLocation(), ClosestZombie->GetActorLocation());
+	if (Distance > ShootingRange) return false;
+
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+	if (CurrentTime - LastShotTime < ShootCooldown) return false;
+
+	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
+	if (!Inventory) return false;
+
+	for (int Slot = 0; Slot < Inventory->GetInventoryCapacity(); ++Slot)
+	{
+		const TArray<ABaseItem*>& Items = Inventory->GetInventory();
+
+		if (!Items.IsValidIndex(Slot) || !Items[Slot]) continue;
+
+		if (Items[Slot]->GetItemType() == EItemType::Pistol ||
+			Items[Slot]->GetItemType() == EItemType::Shotgun)
+		{
+			if (Inventory->UseItem(Slot))
+			{
+				LastShotTime = CurrentTime;
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
+AActor* UStudentSteeringComponent::GetClosestZombie(const TArray<FKnownZombie>& KnownZombies,
+                                                    const FVector& OwnerLocation) const
+{
+	AActor* ClosestZombie = nullptr;
+	float ClosestDistance = FLT_MAX;
+
+	for (const FKnownZombie& Zombie : KnownZombies)
+	{
+		if (!IsValid(Zombie.Actor)) continue;
+
+		const float Distance = FVector::Dist2D(OwnerLocation, Zombie.LastKnownLocation);
+
+		if (Distance < ClosestDistance)
+		{
+			ClosestDistance = Distance;
+			ClosestZombie = Zombie.Actor;
+		}
+	}
+
+	return ClosestZombie;
+}
+
+void UStudentSteeringComponent::RotateTowardsTarget(APawn* OwnerPawn, const FVector& TargetLocation,
+                                                    float DeltaTime) const
+{
+	if (!OwnerPawn) return;
+
+	FVector Direction = TargetLocation - OwnerPawn->GetActorLocation();
+	Direction.Z = 0.0f;
+
+	if (Direction.IsNearlyZero()) return;
+
+	const FRotator TargetRotation = Direction.Rotation();
+
+	const FRotator NewRotation = FMath::RInterpTo(
+		OwnerPawn->GetActorRotation(),
+		TargetRotation,
+		DeltaTime,
+		RotationSpeed
+	);
+
+	OwnerPawn->SetActorRotation(NewRotation);
 }
 
 bool UStudentSteeringComponent::HasNearbyThreat(const TArray<FKnownZombie>& KnownZombies,
-	const FVector& OwnerLocation) const
+                                                const FVector& OwnerLocation) const
 {
 	for (const FKnownZombie& Zombie : KnownZombies)
 	{
@@ -564,4 +695,5 @@ void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, c
 	Blackboard->SetValueAsBool(TEXT("HasKnownWeapon"), bHasKnownWeapon);
 	Blackboard->SetValueAsBool(TEXT("HasKnownFood"), bHasKnownFood);
 	Blackboard->SetValueAsBool(TEXT("HasKnownMedkit"), bHasKnownMedkit);
+	Blackboard->SetValueAsBool(TEXT("HasWeapon"), HasWeapon(OwnerPawn));
 }

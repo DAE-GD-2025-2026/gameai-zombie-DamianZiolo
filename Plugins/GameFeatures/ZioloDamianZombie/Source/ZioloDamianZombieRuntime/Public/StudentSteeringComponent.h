@@ -42,6 +42,19 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Steering")
 	float RotationSpeed = 6.0f;
+	
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ShootingRange = 1200.0f;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ShootCooldown = 0.6f;
+
+	float LastShotTime = -999.0f;
+	
+	bool HasWeapon(APawn* OwnerPawn) const;
+	bool TryShootClosestZombie(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies);
+	AActor* GetClosestZombie(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
+	void RotateTowardsTarget(APawn* OwnerPawn, const FVector& TargetLocation, float DeltaTime) const;
 private:
 	float WanderAngle = 0.0f;
 	
