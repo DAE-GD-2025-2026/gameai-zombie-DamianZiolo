@@ -55,6 +55,11 @@ public:
 	bool TryShootClosestZombie(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies);
 	AActor* GetClosestZombie(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
 	void RotateTowardsTarget(APawn* OwnerPawn, const FVector& TargetLocation, float DeltaTime) const;
+	
+	bool IsFacingTarget(APawn* OwnerPawn, const FVector& TargetLocation) const;
+
+	UPROPERTY(EditAnywhere, Category = "Combat")
+	float ShootFacingDotThreshold = 0.95f;
 private:
 	float WanderAngle = 0.0f;
 	

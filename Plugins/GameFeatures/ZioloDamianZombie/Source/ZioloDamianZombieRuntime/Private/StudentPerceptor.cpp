@@ -112,10 +112,13 @@ void UStudentPerceptor::CleanupExpiredZombies()
 
 	for (int i = KnownZombies.Num() - 1; i >= 0; --i)
 	{
-		const bool bInvalidActor = !IsValid(KnownZombies[i].Actor);
+		AActor* ZombieActor = KnownZombies[i].Actor;
+
+		const bool bInvalidActor = !IsValid(ZombieActor);
+		const bool bHiddenActor = IsValid(ZombieActor) && ZombieActor->IsHidden();
 		const bool bMemoryExpired = CurrentTime - KnownZombies[i].LastSeenTime > MemoryDuration;
-		
-		if (bInvalidActor || bMemoryExpired)
+
+		if (bInvalidActor || bHiddenActor || bMemoryExpired)
 		{
 			KnownZombies.RemoveAt(i);
 		}
@@ -197,8 +200,9 @@ APawn* UStudentPerceptor::GetControlledPawn() const
 	return Cast<APawn>(Owner);
 }
 
-const TArray<FKnownZombie>& UStudentPerceptor::GetKnownZombies() const
+const TArray<FKnownZombie>& UStudentPerceptor::GetKnownZombies()
 {
+	CleanupExpiredZombies();
 	return KnownZombies;
 }
 

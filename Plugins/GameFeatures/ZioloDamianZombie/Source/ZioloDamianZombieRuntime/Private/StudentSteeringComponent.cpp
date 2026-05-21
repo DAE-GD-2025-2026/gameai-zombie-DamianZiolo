@@ -117,8 +117,13 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 		if (ClosestZombie)
 		{
-			RotateTowardsTarget(OwnerPawn, ClosestZombie->GetActorLocation(), DeltaTime);
-			TryShootClosestZombie(OwnerPawn, KnownZombies);
+			const FVector ZombieLocation = ClosestZombie->GetActorLocation();
+			RotateTowardsTarget(OwnerPawn, ZombieLocation, DeltaTime);
+			
+			if (IsFacingTarget(OwnerPawn, ZombieLocation))
+			{
+				TryShootClosestZombie(OwnerPawn, KnownZombies);
+			}
 		}
 	}
 	else
@@ -179,6 +184,15 @@ bool UStudentSteeringComponent::TryShootClosestZombie(APawn* OwnerPawn, const TA
 			if (Inventory->UseItem(Slot))
 			{
 				LastShotTime = CurrentTime;
+				if (GEngine)
+				{
+					GEngine->AddOnScreenDebugMessage(
+						11,
+						0.5f,
+						FColor::Green,
+						TEXT("SHOT FIRED")
+					);
+				}
 				return true;
 			}
 		}
@@ -229,6 +243,26 @@ void UStudentSteeringComponent::RotateTowardsTarget(APawn* OwnerPawn, const FVec
 	);
 
 	OwnerPawn->SetActorRotation(NewRotation);
+}
+
+bool UStudentSteeringComponent::IsFacingTarget(APawn* OwnerPawn, const FVector& TargetLocation) const
+{
+	if (!OwnerPawn) return false;
+
+	FVector ToTarget = TargetLocation - OwnerPawn->GetActorLocation();
+	ToTarget.Z = 0.0f;
+
+	if (ToTarget.IsNearlyZero()) return false;
+
+	ToTarget.Normalize();
+
+	FVector Forward = OwnerPawn->GetActorForwardVector();
+	Forward.Z = 0.0f;
+	Forward.Normalize();
+
+	const float Dot = FVector::DotProduct(Forward, ToTarget);
+
+	return Dot >= ShootFacingDotThreshold;
 }
 
 bool UStudentSteeringComponent::HasNearbyThreat(const TArray<FKnownZombie>& KnownZombies,

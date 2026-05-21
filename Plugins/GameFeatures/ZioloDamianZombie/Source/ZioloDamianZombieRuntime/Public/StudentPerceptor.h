@@ -28,7 +28,7 @@ public:
 	virtual void OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus);
 	
 	
-	const TArray<FKnownZombie>& GetKnownZombies() const;
+	const TArray<FKnownZombie>& GetKnownZombies();
 	const TArray<FKnownItem>& GetKnownItems();
 	const TArray<FKnownHouse>& GetKnownHouses() const;
 	void RemoveKnownItem(AActor* ItemActor);
