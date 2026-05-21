@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 #include "AIWorldMemoryTypes.h"
+#include "AIController.h"
+#include "BehaviorTree/BlackboardComponent.h"
 #include "StudentSteeringComponent.generated.h"
 
 class UStudentPerceptor;
@@ -79,4 +81,6 @@ private:
 	bool HasKnownItem(const TArray<FKnownItem>& KnownItems) const;
 	FVector CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor, const TArray<FKnownItem>& KnownItems);
 	bool TryPickupItem(APawn* OwnerPawn, UStudentPerceptor* Perceptor, AActor* ItemActor);
+	
+	ESteeringMode ReadSteeringModeFromBlackboard(APawn* OwnerPawn) const;
 };

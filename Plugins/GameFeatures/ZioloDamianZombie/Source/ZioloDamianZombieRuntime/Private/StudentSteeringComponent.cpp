@@ -62,22 +62,7 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 
 	FVector MovementDirection = FVector::ZeroVector;
 	
-	if (HasNearbyThreat(KnownZombies, OwnerLocation))
-	{
-		CurrentMode = ESteeringMode::Flee;
-	}
-	else if (HasKnownItem(KnownItems))
-	{
-		CurrentMode = ESteeringMode::SeekItem;
-	}
-	else if (HasKnownUnvisitedHouse(KnownHouses))
-	{
-		CurrentMode = ESteeringMode::SeekHouse;
-	}
-	else
-	{
-		CurrentMode = ESteeringMode::Wander;
-	}
+	CurrentMode = ReadSteeringModeFromBlackboard(OwnerPawn);
 
 	switch (CurrentMode)
 	{
@@ -469,4 +454,25 @@ bool UStudentSteeringComponent::TryPickupItem(APawn* OwnerPawn, UStudentPercepto
 	}
 	
 	return false;
+}
+
+UStudentSteeringComponent::ESteeringMode UStudentSteeringComponent::ReadSteeringModeFromBlackboard(
+	APawn* OwnerPawn) const
+{
+	if (!OwnerPawn) return ESteeringMode::Wander;
+	
+	AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController());
+	if (!AIController) return ESteeringMode::Wander;
+	
+	UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
+	if (!Blackboard) return ESteeringMode::Wander;
+	
+	const FName ModeName = Blackboard->GetValueAsName("SteeringMode");
+	
+	if (ModeName == TEXT("Flee")) return ESteeringMode::Flee;
+	else if (ModeName == TEXT("SeekItem")) return ESteeringMode::SeekItem;
+	else if (ModeName == TEXT("SeekHouse")) return ESteeringMode::SeekHouse;
+	else if (ModeName == TEXT("Wander")) return ESteeringMode::Wander;
+	
+	return ESteeringMode::Wander;
 }
