@@ -141,10 +141,30 @@ bool UStudentSteeringComponent::HasWeapon(APawn* OwnerPawn) const
 	
 	for (ABaseItem* Item : Inventory->GetInventory())
 	{
-		if (!Item) continue;
+		if (!Item)
+		{
+			continue;
+		}
 
-		if (Item->GetItemType() == EItemType::Pistol ||
-			Item->GetItemType() == EItemType::Shotgun)
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				20,
+				0.1f,
+				FColor::Cyan,
+				FString::Printf(
+					TEXT("Inv item: %s | Type: %d | Value: %d | Hidden: %s"),
+					*Item->GetName(),
+					static_cast<int32>(Item->GetItemType()),
+					Item->GetValue(),
+					Item->IsHidden() ? TEXT("true") : TEXT("false")
+				)
+			);
+		}
+
+		if ((Item->GetItemType() == EItemType::Pistol ||
+			 Item->GetItemType() == EItemType::Shotgun) &&
+			Item->GetValue() > 0)
 		{
 			return true;
 		}
@@ -177,10 +197,18 @@ bool UStudentSteeringComponent::TryShootClosestZombie(APawn* OwnerPawn, const TA
 		const TArray<ABaseItem*>& Items = Inventory->GetInventory();
 
 		if (!Items.IsValidIndex(Slot) || !Items[Slot]) continue;
+		
 
 		if (Items[Slot]->GetItemType() == EItemType::Pistol ||
 			Items[Slot]->GetItemType() == EItemType::Shotgun)
 		{
+			//removing gun witouth ammo
+			if (Items[Slot]->GetValue() <= 0)
+			{
+				Inventory->RemoveItem(Slot);
+				continue;
+			}
+			
 			if (Inventory->UseItem(Slot))
 			{
 				LastShotTime = CurrentTime;

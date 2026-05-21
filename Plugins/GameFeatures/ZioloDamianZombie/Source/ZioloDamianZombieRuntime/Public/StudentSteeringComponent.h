@@ -44,7 +44,7 @@ public:
 	float RotationSpeed = 6.0f;
 	
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ShootingRange = 1200.0f;
+	float ShootingRange = 400.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float ShootCooldown = 0.6f;
@@ -59,7 +59,7 @@ public:
 	bool IsFacingTarget(APawn* OwnerPawn, const FVector& TargetLocation) const;
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ShootFacingDotThreshold = 0.95f;
+	float ShootFacingDotThreshold = 0.85f;
 private:
 	float WanderAngle = 0.0f;
 	
