@@ -125,6 +125,10 @@ void UStudentPerceptor::CleanupExpiredZombies()
 void UStudentPerceptor::HandleItemPerception(AActor* Actor)
 {
 	if (!Actor) return;
+	if (Actor->GetClass()->GetName().Contains(TEXT("BP_Garbage")))
+	{
+		return;
+	}
 	for (FKnownItem& KnownItem: KnownItems)
 	{
 		if (KnownItem.Actor == Actor)
