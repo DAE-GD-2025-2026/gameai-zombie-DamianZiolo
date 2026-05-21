@@ -7,7 +7,7 @@
 #include "AIWorldMemoryTypes.h"
 #include "StudentSteeringComponent.generated.h"
 
-
+class UStudentPerceptor;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZIOLODAMIANZOMBIERUNTIME_API UStudentSteeringComponent : public UActorComponent
@@ -47,7 +47,8 @@ private:
 	{
 		Wander,
 		Flee,
-		SeekHouse
+		SeekHouse,
+		SeekItem
 	};
 
 	ESteeringMode CurrentMode = ESteeringMode::Wander;
@@ -57,7 +58,7 @@ private:
 	void RotateTowardsMovement(APawn* OwnerPawn, const FVector& Direction, float DeltaTime) const;
 	
 	bool HasKnownUnvisitedHouse(const TArray<FKnownHouse>& KnownHouses) const;
-	FVector CalculateSeekHouseDirection(APawn* OwnerPawn, const TArray<FKnownHouse>& KnownHouses);
+	FVector CalculateSeekHouseDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor, const TArray<FKnownHouse>& KnownHouses);
 	
 	UPROPERTY()
 	TArray<FVector> CurrentPath;
@@ -66,10 +67,16 @@ private:
 
 	UPROPERTY()
 	TObjectPtr<AActor> CurrentHouseTarget = nullptr;
+	UPROPERTY()
+	TObjectPtr<AActor> CurrentItemTarget = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Path Following")
 	float WaypointReachDistance = 100.0f;
 	
 	void BuildPathToLocation(APawn* OwnerPawn, const FVector& TargetLocation);
 	FVector CalculateFollowPathDirection(APawn* OwnerPawn);
+	
+	bool HasKnownItem(const TArray<FKnownItem>& KnownItems) const;
+	FVector CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor, const TArray<FKnownItem>& KnownItems);
+	bool TryPickupItem(APawn* OwnerPawn, UStudentPerceptor* Perceptor, AActor* ItemActor);
 };

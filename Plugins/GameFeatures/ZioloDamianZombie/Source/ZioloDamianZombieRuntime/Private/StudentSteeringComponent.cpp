@@ -3,6 +3,8 @@
 
 #include "StudentSteeringComponent.h"
 #include "StudentPerceptor.h"
+#include "Items/BaseItem.h"
+#include "Common/InventoryComponent.h"
 #include "Survivor/SurvivorPawn.h"
 
 // Sets default values for this component's properties
@@ -45,6 +47,17 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	
 	const TArray<FKnownZombie>& KnownZombies = Perceptor->GetKnownZombies();
 	const TArray<FKnownHouse>& KnownHouses = Perceptor->GetKnownHouses();
+	const TArray<FKnownItem>& KnownItems = Perceptor->GetKnownItems();
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			4,
+			0.1f,
+			FColor::Yellow,
+			FString::Printf(TEXT("KnownItems: %d"), KnownItems.Num())
+		);
+	}
+	
 	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
 
 	FVector MovementDirection = FVector::ZeroVector;
@@ -52,6 +65,10 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	if (HasNearbyThreat(KnownZombies, OwnerLocation))
 	{
 		CurrentMode = ESteeringMode::Flee;
+	}
+	else if (HasKnownItem(KnownItems))
+	{
+		CurrentMode = ESteeringMode::SeekItem;
 	}
 	else if (HasKnownUnvisitedHouse(KnownHouses))
 	{
@@ -69,13 +86,16 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		break;
 
 	case ESteeringMode::SeekHouse:
-		MovementDirection = CalculateSeekHouseDirection(OwnerPawn, KnownHouses);
+		MovementDirection = CalculateSeekHouseDirection(OwnerPawn, Perceptor, KnownHouses);
 		break;
-
+	case ESteeringMode::SeekItem:
+		MovementDirection = CalculateSeekItemDirection(OwnerPawn, Perceptor, KnownItems);
+		break;
 	case ESteeringMode::Wander:
 	default:
 		MovementDirection = CalculateWanderDirection(OwnerPawn, DeltaTime);
 		break;
+		
 	}
 
 	MovementDirection.Z = 0.0f;
@@ -246,6 +266,7 @@ bool UStudentSteeringComponent::HasKnownUnvisitedHouse(const TArray<FKnownHouse>
 
 FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 	APawn* OwnerPawn,
+	UStudentPerceptor* Perceptor,
 	const TArray<FKnownHouse>& KnownHouses)
 {
 	if (!OwnerPawn)
@@ -290,7 +311,17 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 		BuildPathToLocation(OwnerPawn, BestHouse.Location);
 	}
 
-	return CalculateFollowPathDirection(OwnerPawn);
+	FVector Direction = CalculateFollowPathDirection(OwnerPawn);
+
+	if (Direction.IsNearlyZero() && CurrentHouseTarget)
+	{
+		Perceptor->MarkHouseVisited(CurrentHouseTarget);
+		CurrentHouseTarget = nullptr;
+		CurrentPath.Empty();
+		CurrentPathIndex = 0;
+	}
+
+	return Direction;
 }
 
 void UStudentSteeringComponent::BuildPathToLocation(APawn* OwnerPawn, const FVector& TargetLocation)
@@ -336,4 +367,106 @@ FVector UStudentSteeringComponent::CalculateFollowPathDirection(APawn* OwnerPawn
 	Direction.Z = 0.0f;
 
 	return Direction;
+}
+
+bool UStudentSteeringComponent::HasKnownItem(const TArray<FKnownItem>& KnownItems) const
+{
+	for (const FKnownItem& Item : KnownItems)
+	{
+		if (IsValid(Item.Actor) && !Item.Actor->IsHidden())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+FVector UStudentSteeringComponent::CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+	const TArray<FKnownItem>& KnownItems)
+{
+	if (!OwnerPawn || !Perceptor) return FVector::ZeroVector;
+	
+	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
+	
+	AActor* BestItem = nullptr;
+	FVector BestLocation = FVector::ZeroVector;
+	float BestDistance = FLT_MAX;
+	
+	for (const FKnownItem& Item : KnownItems)
+	{
+		if (!IsValid(Item.Actor) || Item.Actor->IsHidden())
+		{
+			continue;
+		}
+
+		const float Distance = FVector::Dist2D(OwnerLocation, Item.LastKnownLocation);
+
+		if (Distance < BestDistance)
+		{
+			BestDistance = Distance;
+			BestItem = Item.Actor;
+			BestLocation = Item.LastKnownLocation;
+		}
+	}
+
+	if (!BestItem)
+	{
+		return FVector::ZeroVector;
+	}
+
+	if (TryPickupItem(OwnerPawn, Perceptor, BestItem))
+	{
+		CurrentItemTarget = nullptr;
+		CurrentPath.Empty();
+		CurrentPathIndex = 0;
+		return CalculateWanderDirection(OwnerPawn, 0.0f);
+	}
+
+	if (CurrentItemTarget != BestItem || CurrentPath.IsEmpty())
+	{
+		CurrentItemTarget = BestItem;
+		BuildPathToLocation(OwnerPawn, BestLocation);
+	}
+
+	FVector PathDirection = CalculateFollowPathDirection(OwnerPawn);
+
+	if (!PathDirection.IsNearlyZero())
+	{
+		return PathDirection;
+	}
+
+	FVector DirectDirection = BestLocation - OwnerLocation;
+	DirectDirection.Z = 0.0f;
+	return DirectDirection;
+	
+}
+
+bool UStudentSteeringComponent::TryPickupItem(APawn* OwnerPawn, UStudentPerceptor* Perceptor, AActor* ItemActor)
+{
+	if (!OwnerPawn || !Perceptor || !ItemActor) return false;
+	
+	ABaseItem* Item = Cast<ABaseItem>(ItemActor);
+	if (!Item) return false;
+	
+	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
+	if (!Inventory) return false;
+	
+	const float Distance = FVector::Dist2D(OwnerPawn->GetActorLocation(), Item->GetActorLocation());
+	
+	if (Distance > Inventory->GetPickupRange())
+	{
+		return false;
+	}
+	
+	for (int Slot = 0; Slot < Inventory->GetInventoryCapacity(); ++Slot)
+	{
+		
+		if (Inventory->GrabItem(Slot, Item))
+		{
+			Perceptor->RemoveKnownItem(ItemActor);
+			return true;
+		}
+	}
+	
+	return false;
 }
