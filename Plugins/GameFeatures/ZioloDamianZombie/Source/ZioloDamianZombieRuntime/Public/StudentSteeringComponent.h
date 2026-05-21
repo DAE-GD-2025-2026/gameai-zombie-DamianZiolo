@@ -83,4 +83,12 @@ private:
 	bool TryPickupItem(APawn* OwnerPawn, UStudentPerceptor* Perceptor, AActor* ItemActor);
 	
 	ESteeringMode ReadSteeringModeFromBlackboard(APawn* OwnerPawn) const;
+	FName ReadDesiredItemTypeFromBlackboard(APawn* OwnerPawn) const;
+	
+	void UpdateBlackboardDecisionData(
+	APawn* OwnerPawn,
+	const TArray<FKnownZombie>& KnownZombies,
+	const TArray<FKnownHouse>& KnownHouses,
+	const TArray<FKnownItem>& KnownItems
+) const;
 };

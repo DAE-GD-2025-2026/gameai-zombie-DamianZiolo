@@ -48,6 +48,9 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	const TArray<FKnownZombie>& KnownZombies = Perceptor->GetKnownZombies();
 	const TArray<FKnownHouse>& KnownHouses = Perceptor->GetKnownHouses();
 	const TArray<FKnownItem>& KnownItems = Perceptor->GetKnownItems();
+	
+	UpdateBlackboardDecisionData(OwnerPawn, KnownZombies, KnownHouses, KnownItems);
+	
 	if (GEngine)
 	{
 		GEngine->AddOnScreenDebugMessage(
@@ -377,9 +380,32 @@ FVector UStudentSteeringComponent::CalculateSeekItemDirection(APawn* OwnerPawn, 
 	FVector BestLocation = FVector::ZeroVector;
 	float BestDistance = FLT_MAX;
 	
+	const FName DesiredType = ReadDesiredItemTypeFromBlackboard(OwnerPawn);
+	
 	for (const FKnownItem& Item : KnownItems)
 	{
 		if (!IsValid(Item.Actor) || Item.Actor->IsHidden())
+		{
+			continue;
+		}
+		
+		ABaseItem* BaseItem = Cast<ABaseItem>(Item.Actor);
+		if (!BaseItem) continue;
+
+		const EItemType ItemType = BaseItem->GetItemType();
+
+		if (DesiredType == TEXT("Weapon"))
+		{
+			if (ItemType != EItemType::Pistol && ItemType != EItemType::Shotgun)
+			{
+				continue;
+			}
+		}
+		else if (DesiredType == TEXT("Medkit") && ItemType != EItemType::Medkit)
+		{
+			continue;
+		}
+		else if (DesiredType == TEXT("Food") && ItemType != EItemType::Food)
 		{
 			continue;
 		}
@@ -475,4 +501,67 @@ UStudentSteeringComponent::ESteeringMode UStudentSteeringComponent::ReadSteering
 	else if (ModeName == TEXT("Wander")) return ESteeringMode::Wander;
 	
 	return ESteeringMode::Wander;
+}
+
+FName UStudentSteeringComponent::ReadDesiredItemTypeFromBlackboard(APawn* OwnerPawn) const
+{
+	if (!OwnerPawn) return NAME_None;
+
+	AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController());
+	if (!AIController) return NAME_None;
+
+	UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
+	if (!Blackboard) return NAME_None;
+
+	return Blackboard->GetValueAsName(TEXT("DesiredItemType"));
+}
+
+void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies,
+ const TArray<FKnownHouse>& KnownHouses, const TArray<FKnownItem>& KnownItems) const
+{
+	if (!OwnerPawn) return;
+
+	AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController());
+	if (!AIController) return;
+
+	UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
+	if (!Blackboard) return;
+
+	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
+
+	Blackboard->SetValueAsBool(TEXT("HasThreat"), HasNearbyThreat(KnownZombies, OwnerLocation));
+	Blackboard->SetValueAsBool(TEXT("HasKnownHouse"), HasKnownUnvisitedHouse(KnownHouses));
+
+	bool bHasKnownWeapon = false;
+	bool bHasKnownFood = false;
+	bool bHasKnownMedkit = false;
+
+	for (const FKnownItem& KnownItem : KnownItems)
+	{
+		ABaseItem* Item = Cast<ABaseItem>(KnownItem.Actor);
+		if (!Item || Item->IsHidden()) continue;
+
+		switch (Item->GetItemType())
+		{
+		case EItemType::Pistol:
+		case EItemType::Shotgun:
+			bHasKnownWeapon = true;
+			break;
+
+		case EItemType::Food:
+			bHasKnownFood = true;
+			break;
+
+		case EItemType::Medkit:
+			bHasKnownMedkit = true;
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	Blackboard->SetValueAsBool(TEXT("HasKnownWeapon"), bHasKnownWeapon);
+	Blackboard->SetValueAsBool(TEXT("HasKnownFood"), bHasKnownFood);
+	Blackboard->SetValueAsBool(TEXT("HasKnownMedkit"), bHasKnownMedkit);
 }
