@@ -93,6 +93,8 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	case ESteeringMode::SeekItem:
 		MovementDirection = CalculateSeekItemDirection(OwnerPawn, Perceptor, KnownItems);
 		break;
+	case ESteeringMode::SearchItem:
+		MovementDirection = CalculateSearchItemDirection(OwnerPawn, Perceptor, KnownItems, KnownHouses);
 	case ESteeringMode::Wander:
 	default:
 		MovementDirection = CalculateWanderDirection(OwnerPawn);
@@ -685,18 +687,7 @@ FVector UStudentSteeringComponent::CalculateSeekItemDirection(APawn* OwnerPawn, 
 
 		const EItemType ItemType = BaseItem->GetItemType();
 
-		if (DesiredType == TEXT("Weapon"))
-		{
-			if (ItemType != EItemType::Pistol && ItemType != EItemType::Shotgun)
-			{
-				continue;
-			}
-		}
-		else if (DesiredType == TEXT("Medkit") && ItemType != EItemType::Medkit)
-		{
-			continue;
-		}
-		else if (DesiredType == TEXT("Food") && ItemType != EItemType::Food)
+		if (!DoesItemMatchDesiredType(BaseItem, DesiredType))
 		{
 			continue;
 		}
@@ -790,6 +781,7 @@ UStudentSteeringComponent::ESteeringMode UStudentSteeringComponent::ReadSteering
 	else if (ModeName == TEXT("SeekItem")) return ESteeringMode::SeekItem;
 	else if (ModeName == TEXT("SeekHouse")) return ESteeringMode::SeekHouse;
 	else if (ModeName == TEXT("Wander")) return ESteeringMode::Wander;
+	else if (ModeName == TEXT("SearchItem")) return ESteeringMode::SearchItem;
 	
 	return ESteeringMode::Wander;
 }
