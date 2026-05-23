@@ -899,6 +899,69 @@ bool UStudentSteeringComponent::HasItemOfType(APawn* OwnerPawn, EItemType ItemTy
 	return false;
 }
 
+bool UStudentSteeringComponent::MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem)
+{
+	if (!Inventory || !NewItem) return false;
+
+	APawn* OwnerPawn = Cast<APawn>(Inventory->GetOwner());
+
+	if (HasWeapon(OwnerPawn))
+	{
+		return false;
+	}
+	
+	const bool bNewItemIsWeapon =
+		NewItem->GetItemType() == EItemType::Pistol ||
+		NewItem->GetItemType() == EItemType::Shotgun;
+
+	if (!bNewItemIsWeapon)
+	{
+		return false;
+	}
+
+	const TArray<ABaseItem*>& Items = Inventory->GetInventory();
+
+	for (int Slot = 0; Slot < Inventory->GetInventoryCapacity(); ++Slot)
+	{
+		if (!Items.IsValidIndex(Slot) || !Items[Slot])
+		{
+			return true;
+		}
+	}
+
+	for (int Slot = 0; Slot < Inventory->GetInventoryCapacity(); ++Slot)
+	{
+		if (Items[Slot] && Items[Slot]->GetItemType() == EItemType::Food)
+		{
+			Inventory->UseItem(Slot);
+
+			if (Items.IsValidIndex(Slot) && Items[Slot])
+			{
+				Inventory->RemoveItem(Slot);
+			}
+
+			return true;
+		}
+	}
+
+	for (int Slot = 0; Slot < Inventory->GetInventoryCapacity(); ++Slot)
+	{
+		if (Items[Slot] && Items[Slot]->GetItemType() == EItemType::Medkit)
+		{
+			Inventory->UseItem(Slot);
+
+			if (Items.IsValidIndex(Slot) && Items[Slot])
+			{
+				Inventory->RemoveItem(Slot);
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies,
                                                              const TArray<FKnownHouse>& KnownHouses, const TArray<FKnownItem>& KnownItems) const
 {

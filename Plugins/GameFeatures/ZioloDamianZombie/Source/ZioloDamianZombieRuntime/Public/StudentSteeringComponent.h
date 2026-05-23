@@ -7,10 +7,12 @@
 #include "AIWorldMemoryTypes.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
+#include "Items/ItemType.h"
 #include "StudentSteeringComponent.generated.h"
 
 class UStudentPerceptor;
 class ABaseItem;
+class UInventoryComponent;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZIOLODAMIANZOMBIERUNTIME_API UStudentSteeringComponent : public UActorComponent
@@ -123,6 +125,7 @@ private:
 	FName ReadDesiredItemTypeFromBlackboard(APawn* OwnerPawn) const;
 	bool TryUseItemOfType(APawn* OwnerPawn, EItemType ItemType);
 	bool HasItemOfType(APawn* OwnerPawn, EItemType ItemType) const;
+	bool MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem);
 	
 	void UpdateBlackboardDecisionData(
 	APawn* OwnerPawn,
