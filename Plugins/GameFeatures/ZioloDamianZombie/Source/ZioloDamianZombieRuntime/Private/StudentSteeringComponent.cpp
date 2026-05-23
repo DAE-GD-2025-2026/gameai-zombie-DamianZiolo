@@ -111,6 +111,9 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		TryUseItemOfType(OwnerPawn, EItemType::Food);
 		MovementDirection = CalculateWanderDirection(OwnerPawn);
 		break;
+	case ESteeringMode::ExitHouse:
+		MovementDirection = CalculateExitHouseDirection(OwnerPawn);
+		break;
 	case ESteeringMode::Wander:
 	default:
 		MovementDirection = CalculateWanderDirection(OwnerPawn);
@@ -512,8 +515,9 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 
 	if (Direction.IsNearlyZero() && CurrentHouseTarget)
 	{
+		LastVisitedHouse = CurrentHouseTarget;
 		Perceptor->MarkHouseVisited(CurrentHouseTarget);
-		CurrentHouseTarget = nullptr;
+		CurrentMode = ESteeringMode::ExitHouse;
 		CurrentPath.Empty();
 		CurrentPathIndex = 0;
 	}
@@ -544,6 +548,32 @@ FVector UStudentSteeringComponent::CalculateSearchItemDirection(APawn* OwnerPawn
 		return CalculateWanderDirection(OwnerPawn);
 	}
 	
+}
+
+FVector UStudentSteeringComponent::CalculateExitHouseDirection(APawn* OwnerPawn)
+{
+	if (!OwnerPawn || !LastVisitedHouse)
+	{
+		return FVector::ZeroVector;
+	}
+
+	FVector Away = OwnerPawn->GetActorLocation() - LastVisitedHouse->GetActorLocation();
+	Away.Z = 0.0f;
+
+	if (Away.IsNearlyZero())
+	{
+		Away = OwnerPawn->GetActorForwardVector();
+	}
+
+	Away.Normalize();
+
+	const FVector ExitTarget = OwnerPawn->GetActorLocation() + Away * ExitHouseDistance;
+
+	BuildPathToLocation(OwnerPawn, ExitTarget);
+
+	LastVisitedHouse = nullptr;
+
+	return CalculateFollowPathDirection(OwnerPawn);
 }
 
 bool UStudentSteeringComponent::HasKnownDesiredItem(
@@ -778,6 +808,13 @@ bool UStudentSteeringComponent::TryPickupItem(APawn* OwnerPawn, UStudentPercepto
 	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
 	if (!Inventory) return false;
 	
+
+	if (IsInventoryFull(Inventory) && HasWeapon(OwnerPawn))
+	{
+		Perceptor->RemoveKnownItem(ItemActor);
+		return false;
+	}
+	
 	const float Distance = FVector::Dist2D(OwnerPawn->GetActorLocation(), Item->GetActorLocation());
 	
 	if (Distance > Inventory->GetPickupRange())
@@ -962,6 +999,23 @@ bool UStudentSteeringComponent::MakeRoomForImportantItem(UInventoryComponent* In
 	return false;
 }
 
+bool UStudentSteeringComponent::IsInventoryFull(UInventoryComponent* Inventory) const
+{
+	if (!Inventory) return true;
+
+	for (ABaseItem* Item : Inventory->GetInventory())
+	{
+		if (!Item)
+		{
+			return false;
+		}
+	}
+
+	return true;
+}
+
+
+
 void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies,
                                                              const TArray<FKnownHouse>& KnownHouses, const TArray<FKnownItem>& KnownItems) const
 {
@@ -1039,3 +1093,5 @@ void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, c
 	Blackboard->SetValueAsBool(TEXT("HasFood"), HasItemOfType(OwnerPawn, EItemType::Food));
 	
 }
+
+

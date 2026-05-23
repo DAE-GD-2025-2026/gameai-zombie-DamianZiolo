@@ -32,7 +32,7 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 	UPROPERTY(EditAnywhere, Category = "Steering")
-	float ThreatRange = 1500.0f;
+	float ThreatRange = 800.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Steering")
 	float WanderOffsetDistance = 100.0f;
@@ -41,7 +41,7 @@ public:
 	float WanderRadius = 400.0f;
 
 	UPROPERTY(EditAnywhere, Category = "Steering")
-	float MaxWanderAngleChange = 0.7f;
+	float MaxWanderAngleChange = 0.4f;
 
 	UPROPERTY(EditAnywhere, Category = "Steering")
 	float RotationSpeed = 6.0f;
@@ -63,6 +63,12 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "Combat")
 	float ShootFacingDotThreshold = 0.85f;
+	
+	UPROPERTY()
+	TObjectPtr<AActor> LastVisitedHouse = nullptr;
+
+	UPROPERTY(EditAnywhere, Category = "House")
+	float ExitHouseDistance = 800.0f;
 private:
 	float WanderAngle = 0.0f;
 	
@@ -74,7 +80,8 @@ private:
 		SeekItem,
 		SearchItem,
 		UseMedkit,
-		UseFood
+		UseFood,
+		ExitHouse
 	};
 
 	ESteeringMode CurrentMode = ESteeringMode::Wander;
@@ -91,6 +98,9 @@ private:
 	const TArray<FKnownItem>& KnownItems,
 	const TArray<FKnownHouse>& KnownHouses
 	);
+	
+	FVector CalculateExitHouseDirection(APawn* OwnerPawn);
+	
 	bool HasKnownDesiredItem(const TArray<FKnownItem>& KnownItems, FName DesiredItemType) const;
 	
 	bool DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const;
@@ -126,6 +136,7 @@ private:
 	bool TryUseItemOfType(APawn* OwnerPawn, EItemType ItemType);
 	bool HasItemOfType(APawn* OwnerPawn, EItemType ItemType) const;
 	bool MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem);
+	bool IsInventoryFull(UInventoryComponent* Inventory) const;
 	
 	void UpdateBlackboardDecisionData(
 	APawn* OwnerPawn,
