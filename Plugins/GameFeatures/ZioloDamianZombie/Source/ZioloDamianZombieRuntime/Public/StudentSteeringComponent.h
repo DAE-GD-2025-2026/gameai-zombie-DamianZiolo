@@ -10,6 +10,7 @@
 #include "StudentSteeringComponent.generated.h"
 
 class UStudentPerceptor;
+class ABaseItem;
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
 class ZIOLODAMIANZOMBIERUNTIME_API UStudentSteeringComponent : public UActorComponent
@@ -89,6 +90,12 @@ private:
 	bool HasKnownDesiredItem(const TArray<FKnownItem>& KnownItems, FName DesiredItemType) const;
 	
 	bool DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const;
+	
+	void TryPickupNearbyItems(
+	APawn* OwnerPawn,
+	UStudentPerceptor* Perceptor,
+	const TArray<FKnownItem>& KnownItems
+);
 	
 	UPROPERTY()
 	TArray<FVector> CurrentPath;

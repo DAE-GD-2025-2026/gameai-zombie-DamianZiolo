@@ -64,6 +64,7 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	}
 	
 	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
+	TryPickupNearbyItems(OwnerPawn, Perceptor, KnownItems);
 	
 	const bool bHasWeapon = HasWeapon(OwnerPawn);
 	
@@ -90,16 +91,19 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	case ESteeringMode::SeekHouse:
 		MovementDirection = CalculateSeekHouseDirection(OwnerPawn, Perceptor, KnownHouses);
 		break;
+		
 	case ESteeringMode::SeekItem:
 		MovementDirection = CalculateSeekItemDirection(OwnerPawn, Perceptor, KnownItems);
 		break;
+		
 	case ESteeringMode::SearchItem:
 		MovementDirection = CalculateSearchItemDirection(OwnerPawn, Perceptor, KnownItems, KnownHouses);
+		break;
+		
 	case ESteeringMode::Wander:
 	default:
 		MovementDirection = CalculateWanderDirection(OwnerPawn);
 		break;
-		
 	}
 
 	MovementDirection.Z = 0.0f;
@@ -602,6 +606,25 @@ bool UStudentSteeringComponent::DoesItemMatchDesiredType(ABaseItem* Item, FName 
 	}
 
 	return false;
+}
+
+void UStudentSteeringComponent::TryPickupNearbyItems(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+	const TArray<FKnownItem>& KnownItems)
+{
+	if (!OwnerPawn || !Perceptor)
+	{
+		return;
+	}
+
+	for (const FKnownItem& KnownItem : KnownItems)
+	{
+		if (!IsValid(KnownItem.Actor) || KnownItem.Actor->IsHidden())
+		{
+			continue;
+		}
+
+		TryPickupItem(OwnerPawn, Perceptor, KnownItem.Actor);
+	}
 }
 
 
