@@ -68,17 +68,27 @@ private:
 		Wander,
 		Flee,
 		SeekHouse,
-		SeekItem
+		SeekItem,
+		SearchItem
 	};
 
 	ESteeringMode CurrentMode = ESteeringMode::Wander;
 	bool HasNearbyThreat(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
 	FVector CalculateFleeDirection(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
-	FVector CalculateWanderDirection(APawn* OwnerPawn, float DeltaTime);
+	FVector CalculateWanderDirection(APawn* OwnerPawn);
 	void RotateTowardsMovement(APawn* OwnerPawn, const FVector& Direction, float DeltaTime) const;
 	
 	bool HasKnownUnvisitedHouse(const TArray<FKnownHouse>& KnownHouses) const;
 	FVector CalculateSeekHouseDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor, const TArray<FKnownHouse>& KnownHouses);
+	FVector CalculateSearchItemDirection(
+	APawn* OwnerPawn,
+	UStudentPerceptor* Perceptor,
+	const TArray<FKnownItem>& KnownItems,
+	const TArray<FKnownHouse>& KnownHouses
+	);
+	bool HasKnownDesiredItem(const TArray<FKnownItem>& KnownItems, FName DesiredItemType) const;
+	
+	bool DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const;
 	
 	UPROPERTY()
 	TArray<FVector> CurrentPath;

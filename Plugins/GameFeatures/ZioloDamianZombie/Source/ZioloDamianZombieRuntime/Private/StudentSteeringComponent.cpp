@@ -95,7 +95,7 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		break;
 	case ESteeringMode::Wander:
 	default:
-		MovementDirection = CalculateWanderDirection(OwnerPawn, DeltaTime);
+		MovementDirection = CalculateWanderDirection(OwnerPawn);
 		break;
 		
 	}
@@ -343,8 +343,7 @@ FVector UStudentSteeringComponent::CalculateFleeDirection(
 }
 
 FVector UStudentSteeringComponent::CalculateWanderDirection(
-	APawn* OwnerPawn,
-	float DeltaTime)
+	APawn* OwnerPawn)
 {
 	if (!OwnerPawn)
 	{
@@ -505,6 +504,105 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 	return Direction;
 }
 
+FVector UStudentSteeringComponent::CalculateSearchItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+	const TArray<FKnownItem>& KnownItems, const TArray<FKnownHouse>& KnownHouses)
+{
+	if (!OwnerPawn)
+	{
+		return FVector::ZeroVector;
+	}
+	
+	const FName DesiredType = ReadDesiredItemTypeFromBlackboard(OwnerPawn);
+	
+	if (HasKnownDesiredItem(KnownItems,DesiredType))
+	{
+		return CalculateSeekItemDirection(OwnerPawn, Perceptor, KnownItems);
+	}
+	else if (HasKnownUnvisitedHouse(KnownHouses) )
+	{
+		return CalculateSeekHouseDirection(OwnerPawn, Perceptor, KnownHouses);
+	}
+	else
+	{
+		return CalculateWanderDirection(OwnerPawn);
+	}
+	
+}
+
+bool UStudentSteeringComponent::HasKnownDesiredItem(
+	const TArray<FKnownItem>& KnownItems,
+	FName DesiredItemType) const
+{
+	for (const FKnownItem& KnownItem : KnownItems)
+	{
+		if (!IsValid(KnownItem.Actor) || KnownItem.Actor->IsHidden())
+		{
+			continue;
+		}
+
+		if (KnownItem.bCollected)
+		{
+			continue;
+		}
+
+		ABaseItem* Item = Cast<ABaseItem>(KnownItem.Actor);
+		if (!Item)
+		{
+			continue;
+		}
+
+		if (DoesItemMatchDesiredType(Item, DesiredItemType))
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UStudentSteeringComponent::DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const
+{
+	if (!Item)
+	{
+		return false;
+	}
+
+	const EItemType ItemType = Item->GetItemType();
+
+	if (DesiredItemType == TEXT("Any"))
+	{
+		return ItemType != EItemType::Garbage;
+	}
+
+	if (DesiredItemType == TEXT("Weapon"))
+	{
+		return ItemType == EItemType::Pistol || ItemType == EItemType::Shotgun;
+	}
+
+	if (DesiredItemType == TEXT("Food"))
+	{
+		return ItemType == EItemType::Food;
+	}
+
+	if (DesiredItemType == TEXT("Medkit"))
+	{
+		return ItemType == EItemType::Medkit;
+	}
+
+	if (DesiredItemType == TEXT("Pistol"))
+	{
+		return ItemType == EItemType::Pistol;
+	}
+
+	if (DesiredItemType == TEXT("Shotgun"))
+	{
+		return ItemType == EItemType::Shotgun;
+	}
+
+	return false;
+}
+
+
 void UStudentSteeringComponent::BuildPathToLocation(APawn* OwnerPawn, const FVector& TargetLocation)
 {
 	ASurvivorPawn* Survivor = Cast<ASurvivorPawn>(OwnerPawn);
@@ -623,7 +721,7 @@ FVector UStudentSteeringComponent::CalculateSeekItemDirection(APawn* OwnerPawn, 
 		CurrentItemTarget = nullptr;
 		CurrentPath.Empty();
 		CurrentPathIndex = 0;
-		return CalculateWanderDirection(OwnerPawn, 0.0f);
+		return CalculateWanderDirection(OwnerPawn);
 	}
 
 	if (CurrentItemTarget != BestItem || CurrentPath.IsEmpty())
