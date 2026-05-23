@@ -8,6 +8,9 @@
 #include "Common/InventoryComponent.h"
 #include "Survivor/SurvivorPawn.h"
 #include "DrawDebugHelpers.h"
+#include "Common/HealthComponent.h"
+#include "Common/StaminaComponent.h"
+
 
 // Sets default values for this component's properties
 UStudentSteeringComponent::UStudentSteeringComponent()
@@ -99,7 +102,15 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	case ESteeringMode::SearchItem:
 		MovementDirection = CalculateSearchItemDirection(OwnerPawn, Perceptor, KnownItems, KnownHouses);
 		break;
-		
+	case ESteeringMode::UseMedkit:
+		TryUseItemOfType(OwnerPawn, EItemType::Medkit);
+		MovementDirection = CalculateWanderDirection(OwnerPawn);
+		break;
+
+	case ESteeringMode::UseFood:
+		TryUseItemOfType(OwnerPawn, EItemType::Food);
+		MovementDirection = CalculateWanderDirection(OwnerPawn);
+		break;
 	case ESteeringMode::Wander:
 	default:
 		MovementDirection = CalculateWanderDirection(OwnerPawn);
@@ -805,6 +816,8 @@ UStudentSteeringComponent::ESteeringMode UStudentSteeringComponent::ReadSteering
 	else if (ModeName == TEXT("SeekHouse")) return ESteeringMode::SeekHouse;
 	else if (ModeName == TEXT("Wander")) return ESteeringMode::Wander;
 	else if (ModeName == TEXT("SearchItem")) return ESteeringMode::SearchItem;
+	else if (ModeName == TEXT("UseMedkit")) return ESteeringMode::UseMedkit;
+	else if (ModeName == TEXT("UseFood")) return ESteeringMode::UseFood;
 	
 	return ESteeringMode::Wander;
 }
@@ -822,8 +835,72 @@ FName UStudentSteeringComponent::ReadDesiredItemTypeFromBlackboard(APawn* OwnerP
 	return Blackboard->GetValueAsName(TEXT("DesiredItemType"));
 }
 
+bool UStudentSteeringComponent::TryUseItemOfType(APawn* OwnerPawn, EItemType ItemType)
+{
+	if (!OwnerPawn) return false;
+
+	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
+	if (!Inventory) return false;
+
+	const TArray<ABaseItem*>& Items = Inventory->GetInventory();
+
+	for (int Slot = 0; Slot < Inventory->GetInventoryCapacity(); ++Slot)
+	{
+		if (!Items.IsValidIndex(Slot) || !Items[Slot])
+		{
+			continue;
+		}
+
+		if (Items[Slot]->GetItemType() != ItemType)
+		{
+			continue;
+		}
+
+		if (Items[Slot]->GetValue() <= 0)
+		{
+			Inventory->RemoveItem(Slot);
+			continue;
+		}
+
+		if (Inventory->UseItem(Slot))
+		{
+			if (Items.IsValidIndex(Slot) && Items[Slot] && Items[Slot]->GetValue() <= 0)
+			{
+				Inventory->RemoveItem(Slot);
+			}
+
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool UStudentSteeringComponent::HasItemOfType(APawn* OwnerPawn, EItemType ItemType) const
+{
+	if (!OwnerPawn) return false;
+
+	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
+	if (!Inventory) return false;
+
+	for (ABaseItem* Item : Inventory->GetInventory())
+	{
+		if (!Item)
+		{
+			continue;
+		}
+
+		if (Item->GetItemType() == ItemType && Item->GetValue() > 0)
+		{
+			return true;
+		}
+	}
+
+	return false;
+}
+
 void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies,
- const TArray<FKnownHouse>& KnownHouses, const TArray<FKnownItem>& KnownItems) const
+                                                             const TArray<FKnownHouse>& KnownHouses, const TArray<FKnownItem>& KnownItems) const
 {
 	if (!OwnerPawn) return;
 
@@ -871,4 +948,31 @@ void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, c
 	Blackboard->SetValueAsBool(TEXT("HasKnownFood"), bHasKnownFood);
 	Blackboard->SetValueAsBool(TEXT("HasKnownMedkit"), bHasKnownMedkit);
 	Blackboard->SetValueAsBool(TEXT("HasWeapon"), HasWeapon(OwnerPawn));
+	
+	//Food and Health
+	UHealthComponent* Health = OwnerPawn->FindComponentByClass<UHealthComponent>();
+	UStaminaComponent* Stamina = OwnerPawn->FindComponentByClass<UStaminaComponent>();
+
+	bool bHealthLow = false;
+	bool bStaminaLow = false;
+
+	if (Health)
+	{
+		bHealthLow =
+			static_cast<float>(Health->GetHealth()) /
+			static_cast<float>(Health->GetMaxHealth()) < 0.4f;
+	}
+
+	if (Stamina)
+	{
+		bStaminaLow =
+			Stamina->GetCurrentStamina() /
+			Stamina->GetMaxStamina() < 0.4f;
+	}
+
+	Blackboard->SetValueAsBool(TEXT("HealthLow"), bHealthLow);
+	Blackboard->SetValueAsBool(TEXT("StaminaLow"), bStaminaLow);
+	Blackboard->SetValueAsBool(TEXT("HasMedkit"), HasItemOfType(OwnerPawn, EItemType::Medkit));
+	Blackboard->SetValueAsBool(TEXT("HasFood"), HasItemOfType(OwnerPawn, EItemType::Food));
+	
 }

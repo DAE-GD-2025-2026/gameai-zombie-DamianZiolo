@@ -70,7 +70,9 @@ private:
 		Flee,
 		SeekHouse,
 		SeekItem,
-		SearchItem
+		SearchItem,
+		UseMedkit,
+		UseFood
 	};
 
 	ESteeringMode CurrentMode = ESteeringMode::Wander;
@@ -119,6 +121,8 @@ private:
 	
 	ESteeringMode ReadSteeringModeFromBlackboard(APawn* OwnerPawn) const;
 	FName ReadDesiredItemTypeFromBlackboard(APawn* OwnerPawn) const;
+	bool TryUseItemOfType(APawn* OwnerPawn, EItemType ItemType);
+	bool HasItemOfType(APawn* OwnerPawn, EItemType ItemType) const;
 	
 	void UpdateBlackboardDecisionData(
 	APawn* OwnerPawn,
