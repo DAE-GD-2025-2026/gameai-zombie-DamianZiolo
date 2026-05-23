@@ -71,15 +71,8 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	
 	const bool bHasWeapon = HasWeapon(OwnerPawn);
 	
-	DrawDebugString(
-	GetWorld(),
-	OwnerLocation + FVector(0, 0, 120.0f),
-	bHasWeapon ? TEXT("HAS WEAPON") : TEXT("NO WEAPON"),
-	nullptr,
-	bHasWeapon ? FColor::Green : FColor::Red,
-	0.0f,
-	true
-);
+	DrawSteeringDebug(OwnerPawn, KnownItems, KnownHouses);
+	
 
 	FVector MovementDirection = FVector::ZeroVector;
 	
@@ -509,6 +502,16 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 	{
 		CurrentHouseTarget = BestHouse.Actor;
 		BuildPathToLocation(OwnerPawn, BestHouse.Location);
+		
+		if (GEngine)
+		{
+			GEngine->AddOnScreenDebugMessage(
+				110,
+				1.0f,
+				FColor::Green,
+				FString::Printf(TEXT("Found house target: %s"), *BestHouse.Actor->GetName())
+			);
+		}
 	}
 
 	FVector Direction = CalculateFollowPathDirection(OwnerPawn);
@@ -517,6 +520,7 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 	{
 		LastVisitedHouse = CurrentHouseTarget;
 		Perceptor->MarkHouseVisited(CurrentHouseTarget);
+		CurrentHouseTarget = nullptr;
 		CurrentMode = ESteeringMode::ExitHouse;
 		CurrentPath.Empty();
 		CurrentPathIndex = 0;
@@ -828,6 +832,17 @@ bool UStudentSteeringComponent::TryPickupItem(APawn* OwnerPawn, UStudentPercepto
 		if (Inventory->GrabItem(Slot, Item))
 		{
 			Perceptor->RemoveKnownItem(ItemActor);
+			
+			if (GEngine)
+			{
+				GEngine->AddOnScreenDebugMessage(
+					111,
+					1.0f,
+					FColor::Green,
+					FString::Printf(TEXT("Picked up: %s"), *ItemActor->GetName())
+				);
+			}
+			
 			return true;
 		}
 	}
@@ -1092,6 +1107,67 @@ void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, c
 	Blackboard->SetValueAsBool(TEXT("HasMedkit"), HasItemOfType(OwnerPawn, EItemType::Medkit));
 	Blackboard->SetValueAsBool(TEXT("HasFood"), HasItemOfType(OwnerPawn, EItemType::Food));
 	
+}
+
+//Debug
+FString UStudentSteeringComponent::GetSteeringModeName() const
+{
+	switch (CurrentMode)
+	{
+	case ESteeringMode::Wander: return TEXT("Wander");
+	case ESteeringMode::Flee: return TEXT("Flee");
+	case ESteeringMode::SeekHouse: return TEXT("SeekHouse");
+	case ESteeringMode::SeekItem: return TEXT("SeekItem");
+	case ESteeringMode::SearchItem: return TEXT("SearchItem");
+	case ESteeringMode::UseMedkit: return TEXT("UseMedkit");
+	case ESteeringMode::UseFood: return TEXT("UseFood");
+	case ESteeringMode::ExitHouse: return TEXT("ExitHouse");
+	default: return TEXT("Unknown");
+	}
+}
+
+void UStudentSteeringComponent::DrawSteeringDebug(
+	APawn* OwnerPawn,
+	const TArray<FKnownItem>& KnownItems,
+	const TArray<FKnownHouse>& KnownHouses) const
+{
+	if (!OwnerPawn || !GEngine)
+	{
+		return;
+	}
+
+	const bool bHasWeapon = HasWeapon(OwnerPawn);
+
+	GEngine->AddOnScreenDebugMessage(
+		100,
+		0.1f,
+		FColor::Yellow,
+		FString::Printf(TEXT("KnownItems: %d"), KnownItems.Num())
+	);
+
+	GEngine->AddOnScreenDebugMessage(
+		101,
+		0.1f,
+		FColor::Yellow,
+		FString::Printf(TEXT("KnownHouses: %d"), KnownHouses.Num())
+	);
+
+	GEngine->AddOnScreenDebugMessage(
+		102,
+		0.1f,
+		bHasWeapon ? FColor::Green : FColor::Red,
+		FString::Printf(TEXT("Weapon: %s"), bHasWeapon ? TEXT("true") : TEXT("false"))
+	);
+
+	DrawDebugString(
+		GetWorld(),
+		OwnerPawn->GetActorLocation() + FVector(0, 0, 140.0f),
+		GetSteeringModeName(),
+		nullptr,
+		FColor::Cyan,
+		0.0f,
+		true
+	);
 }
 
 
