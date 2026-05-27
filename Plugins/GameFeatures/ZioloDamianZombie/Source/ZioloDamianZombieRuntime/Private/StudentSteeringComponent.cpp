@@ -594,6 +594,19 @@ FVector UStudentSteeringComponent::CalculateSearchItemDirection(APawn* OwnerPawn
 		return FVector::ZeroVector;
 	}
 	
+	UInventoryComponent* Inventory =
+		OwnerPawn->FindComponentByClass<UInventoryComponent>();
+
+	if (Inventory && IsInventoryFull(Inventory))
+	{
+		if (HasKnownUnvisitedHouse(KnownHouses))
+		{
+			return CalculateSeekHouseDirection(OwnerPawn, Perceptor, KnownHouses);
+		}
+
+		return CalculateWanderDirection(OwnerPawn);
+	}
+	
 	const FName DesiredType = ReadDesiredItemTypeFromBlackboard(OwnerPawn);
 	
 	if (HasKnownDesiredItem(KnownItems,DesiredType))
@@ -1168,14 +1181,14 @@ void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, c
 	{
 		bHealthLow =
 			static_cast<float>(Health->GetHealth()) /
-			static_cast<float>(Health->GetMaxHealth()) < 0.4f;
+			static_cast<float>(Health->GetMaxHealth()) <= 0.5f;
 	}
 
 	if (Stamina)
 	{
 		bStaminaLow =
 			Stamina->GetCurrentStamina() /
-			Stamina->GetMaxStamina() < 0.4f;
+			Stamina->GetMaxStamina() <= 0.5f;
 	}
 
 	Blackboard->SetValueAsBool(TEXT("HealthLow"), bHealthLow);
