@@ -67,6 +67,13 @@ public:
 	// House exit state
 	UPROPERTY()
 	TObjectPtr<AActor> LastVisitedHouse = nullptr;
+	UPROPERTY()
+	FVector ExitHouseTarget = FVector::ZeroVector;
+	bool bHasExitHouseTarget = false;
+	
+	bool IsInsideHouseBounds(APawn* OwnerPawn, AActor* HouseActor) const;
+	FVector PickRandomExitLocationNearHouse(AActor* HouseActor) const;
+	void ClearHouseExitState();
 
 	UPROPERTY(EditAnywhere, Category = "House")
 	float ExitHouseDistance = 800.0f;

@@ -77,6 +77,10 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	FVector MovementDirection = FVector::ZeroVector;
 	
 	CurrentMode = ReadSteeringModeFromBlackboard(OwnerPawn);
+	if (CurrentMode == ESteeringMode::Wander && LastVisitedHouse && IsInsideHouseBounds(OwnerPawn,LastVisitedHouse))
+	{
+		CurrentMode = ESteeringMode::ExitHouse;
+	}
 
 	switch (CurrentMode)
 	{
@@ -306,6 +310,62 @@ bool UStudentSteeringComponent::IsFacingTarget(APawn* OwnerPawn, const FVector& 
 	return Dot >= ShootFacingDotThreshold;
 }
 
+bool UStudentSteeringComponent::IsInsideHouseBounds(APawn* OwnerPawn, AActor* HouseActor) const
+{
+	if (!OwnerPawn || !HouseActor)
+	{
+		return false;
+	}
+
+	FVector Origin;
+	FVector Extent;
+	HouseActor->GetActorBounds(true, Origin, Extent);
+
+	const FVector Location = OwnerPawn->GetActorLocation();
+	const float Tolerance = 150.0f;
+
+	return
+		FMath::Abs(Location.X - Origin.X) <= Extent.X + Tolerance &&
+		FMath::Abs(Location.Y - Origin.Y) <= Extent.Y + Tolerance;
+}
+
+FVector UStudentSteeringComponent::PickRandomExitLocationNearHouse(AActor* HouseActor) const
+{
+	if (!HouseActor)
+	{
+		return FVector::ZeroVector;
+	}
+
+	FVector Origin;
+	FVector Extent;
+	HouseActor->GetActorBounds(true, Origin, Extent);
+
+	const float Angle = FMath::FRandRange(0.0f, 2.0f * PI);
+
+	const FVector Direction = FVector(
+		FMath::Cos(Angle),
+		FMath::Sin(Angle),
+		0.0f
+	);
+
+	//10 meters - remember Damian later move it to const variable in .h
+	const float DistanceFromHouse = FMath::Max(Extent.X, Extent.Y) + 1000.0f;
+
+	FVector Target = Origin + Direction * DistanceFromHouse;
+	Target.Z = Origin.Z;
+
+	return Target;
+}
+
+void UStudentSteeringComponent::ClearHouseExitState()
+{
+	LastVisitedHouse = nullptr;
+	ExitHouseTarget = FVector::ZeroVector;
+	bHasExitHouseTarget = false;
+	CurrentPath.Empty();
+	CurrentPathIndex = 0;
+}
+
 bool UStudentSteeringComponent::HasNearbyThreat(const TArray<FKnownZombie>& KnownZombies,
                                                 const FVector& OwnerLocation) const
 {
@@ -521,7 +581,6 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 		LastVisitedHouse = CurrentHouseTarget;
 		Perceptor->MarkHouseVisited(CurrentHouseTarget);
 		CurrentHouseTarget = nullptr;
-		CurrentMode = ESteeringMode::ExitHouse;
 		CurrentPath.Empty();
 		CurrentPathIndex = 0;
 	}
@@ -558,26 +617,32 @@ FVector UStudentSteeringComponent::CalculateExitHouseDirection(APawn* OwnerPawn)
 {
 	if (!OwnerPawn || !LastVisitedHouse)
 	{
+		ClearHouseExitState();
 		return FVector::ZeroVector;
 	}
-
-	FVector Away = OwnerPawn->GetActorLocation() - LastVisitedHouse->GetActorLocation();
-	Away.Z = 0.0f;
-
-	if (Away.IsNearlyZero())
+	
+	if (!IsInsideHouseBounds(OwnerPawn, LastVisitedHouse))
 	{
-		Away = OwnerPawn->GetActorForwardVector();
+		ClearHouseExitState();
+		return CalculateWanderDirection(OwnerPawn);
+	}
+	
+	if(!bHasExitHouseTarget)
+	{
+		ExitHouseTarget = PickRandomExitLocationNearHouse(LastVisitedHouse);
+		BuildPathToLocation(OwnerPawn, ExitHouseTarget);
+		bHasExitHouseTarget = true;
+	}
+	FVector Direction = CalculateFollowPathDirection(OwnerPawn);
+
+	if (Direction.IsNearlyZero())
+	{
+		ClearHouseExitState();
+		return CalculateWanderDirection(OwnerPawn);
 	}
 
-	Away.Normalize();
-
-	const FVector ExitTarget = OwnerPawn->GetActorLocation() + Away * ExitHouseDistance;
-
-	BuildPathToLocation(OwnerPawn, ExitTarget);
-
-	LastVisitedHouse = nullptr;
-
-	return CalculateFollowPathDirection(OwnerPawn);
+	return Direction;
+	
 }
 
 bool UStudentSteeringComponent::HasKnownDesiredItem(
