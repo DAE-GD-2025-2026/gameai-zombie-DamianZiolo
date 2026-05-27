@@ -881,7 +881,7 @@ bool UStudentSteeringComponent::TryPickupItem(APawn* OwnerPawn, UStudentPercepto
 
 	if (IsInventoryFull(Inventory) && HasWeapon(OwnerPawn))
 	{
-		Perceptor->RemoveKnownItem(ItemActor);
+		//Perceptor->RemoveKnownItem(ItemActor);
 		return false;
 	}
 	

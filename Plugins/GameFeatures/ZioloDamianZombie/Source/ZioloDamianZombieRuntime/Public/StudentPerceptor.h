@@ -33,6 +33,7 @@ public:
 	const TArray<FKnownHouse>& GetKnownHouses() const;
 	void RemoveKnownItem(AActor* ItemActor);
 	void MarkHouseVisited(AActor* Actor);
+	
 private:
 	UPROPERTY()
 	TArray<FKnownZombie> KnownZombies;
@@ -55,6 +56,8 @@ private:
 	void HandleItemPerception(AActor* Actor);
 	bool IsItem(AActor* Actor) const;
 	void CleanupKnownItems();
+	
+	void HandleDamagePerception(const FAIStimulus& Stimulus);
 	
 	
 

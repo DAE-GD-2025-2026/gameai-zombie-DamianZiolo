@@ -26,8 +26,15 @@ void UStudentPerceptor::BeginPlay()
 
 void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
-	if (!Actor) return;
+	if (Stimulus.Type == UAISense::GetSenseID(UAISense_Damage::StaticClass()) )
+	{
+		HandleDamagePerception(Stimulus);
+        return;
+	}
+	
 
+	
+	if (!Actor) return;
 	if (IsZombie(Actor))
 	{
 		HandleZombiePerception(Actor);
@@ -114,8 +121,9 @@ void UStudentPerceptor::CleanupExpiredZombies()
 	{
 		AActor* ZombieActor = KnownZombies[i].Actor;
 
-		const bool bInvalidActor = !IsValid(ZombieActor);
-		const bool bHiddenActor = IsValid(ZombieActor) && ZombieActor->IsHidden();
+		const bool bIsGhostZombie = ZombieActor == nullptr;
+		const bool bInvalidActor = !bIsGhostZombie && !IsValid(ZombieActor);
+		const bool bHiddenActor = !bIsGhostZombie && ZombieActor->IsHidden();
 		const bool bMemoryExpired = CurrentTime - KnownZombies[i].LastSeenTime > MemoryDuration;
 
 		if (bInvalidActor || bHiddenActor || bMemoryExpired)
@@ -166,6 +174,40 @@ void UStudentPerceptor::CleanupKnownItems()
 		{
 			KnownItems.RemoveAt(i);
 		}
+	}
+}
+
+void UStudentPerceptor::HandleDamagePerception(const FAIStimulus& Stimulus)
+{
+	APawn* Survivor = GetControlledPawn();
+	if (!Survivor)
+	{
+		return;
+	}
+
+	const float CurrentTime = GetWorld()->GetTimeSeconds();
+
+	const FVector SurvivorLocation = Survivor->GetActorLocation();
+	const FVector BehindDirection = -Survivor->GetActorForwardVector();
+
+	FVector GhostLocation = SurvivorLocation + BehindDirection * 300.0f;
+	GhostLocation.Z = SurvivorLocation.Z;
+
+	FKnownZombie GhostZombie;
+	GhostZombie.Actor = nullptr;
+	GhostZombie.LastKnownLocation = GhostLocation;
+	GhostZombie.LastSeenTime = CurrentTime;
+
+	KnownZombies.Add(GhostZombie);
+
+	if (GEngine)
+	{
+		GEngine->AddOnScreenDebugMessage(
+			-1,
+			1.0f,
+			FColor::Purple,
+			TEXT("Damage stimulus: ghost zombie added behind survivor")
+		);
 	}
 }
 
