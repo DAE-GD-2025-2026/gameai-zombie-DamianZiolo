@@ -729,6 +729,13 @@ void UStudentSteeringComponent::TryPickupNearbyItems(APawn* OwnerPawn, UStudentP
 	{
 		return;
 	}
+	UInventoryComponent* Inventory =
+	OwnerPawn->FindComponentByClass<UInventoryComponent>();
+
+	if (IsInventoryFull(Inventory))
+	{
+		return;
+	}
 
 	for (const FKnownItem& KnownItem : KnownItems)
 	{
