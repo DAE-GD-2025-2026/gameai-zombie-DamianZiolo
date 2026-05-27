@@ -77,7 +77,8 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	FVector MovementDirection = FVector::ZeroVector;
 	
 	CurrentMode = ReadSteeringModeFromBlackboard(OwnerPawn);
-	if (CurrentMode == ESteeringMode::Wander && LastVisitedHouse && IsInsideHouseBounds(OwnerPawn,LastVisitedHouse))
+	if (CurrentMode == ESteeringMode::SearchItem && LastVisitedHouse && IsInsideHouseBounds(OwnerPawn,LastVisitedHouse)
+		&& !HasKnownItem(KnownItems))
 	{
 		CurrentMode = ESteeringMode::ExitHouse;
 	}
