@@ -71,18 +71,12 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	
 	const bool bHasWeapon = HasWeapon(OwnerPawn);
 	
-	DrawSteeringDebug(OwnerPawn, KnownItems, KnownHouses);
+	
 	
 
 	FVector MovementDirection = FVector::ZeroVector;
-	
 	CurrentMode = ReadSteeringModeFromBlackboard(OwnerPawn);
-	if (CurrentMode == ESteeringMode::SearchItem && LastVisitedHouse && IsInsideHouseBounds(OwnerPawn,LastVisitedHouse)
-		&& !HasKnownItem(KnownItems))
-	{
-		CurrentMode = ESteeringMode::ExitHouse;
-	}
-
+	
 	switch (CurrentMode)
 	{
 	case ESteeringMode::Flee:
@@ -118,6 +112,8 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		break;
 	}
 
+	DrawSteeringDebug(OwnerPawn, KnownItems, KnownHouses);
+	
 	MovementDirection.Z = 0.0f;
 
 	if (MovementDirection.IsNearlyZero())
@@ -584,6 +580,7 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 		CurrentHouseTarget = nullptr;
 		CurrentPath.Empty();
 		CurrentPathIndex = 0;
+		bHasExitHouseTarget = false;
 	}
 
 	return Direction;
@@ -609,6 +606,12 @@ FVector UStudentSteeringComponent::CalculateSearchItemDirection(APawn* OwnerPawn
 	}
 	else
 	{
+		if (LastVisitedHouse && IsInsideHouseBounds(OwnerPawn, LastVisitedHouse))
+		{
+			CurrentMode = ESteeringMode::ExitHouse;
+			return CalculateExitHouseDirection(OwnerPawn);
+		}
+
 		return CalculateWanderDirection(OwnerPawn);
 	}
 	
