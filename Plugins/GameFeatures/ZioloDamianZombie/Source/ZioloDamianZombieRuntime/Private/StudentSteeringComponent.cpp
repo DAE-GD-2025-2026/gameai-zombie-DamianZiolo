@@ -931,8 +931,6 @@ UStudentSteeringComponent::ESteeringMode UStudentSteeringComponent::ReadSteering
 	else if (ModeName == TEXT("SeekHouse")) return ESteeringMode::SeekHouse;
 	else if (ModeName == TEXT("Wander")) return ESteeringMode::Wander;
 	else if (ModeName == TEXT("SearchItem")) return ESteeringMode::SearchItem;
-	else if (ModeName == TEXT("UseMedkit")) return ESteeringMode::UseMedkit;
-	else if (ModeName == TEXT("UseFood")) return ESteeringMode::UseFood;
 	
 	return ESteeringMode::Wander;
 }
@@ -950,46 +948,6 @@ FName UStudentSteeringComponent::ReadDesiredItemTypeFromBlackboard(APawn* OwnerP
 	return Blackboard->GetValueAsName(TEXT("DesiredItemType"));
 }
 
-bool UStudentSteeringComponent::TryUseItemOfType(APawn* OwnerPawn, EItemType ItemType)
-{
-	if (!OwnerPawn) return false;
-
-	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
-	if (!Inventory) return false;
-
-	const TArray<ABaseItem*>& Items = Inventory->GetInventory();
-
-	for (int Slot = 0; Slot < Inventory->GetInventoryCapacity(); ++Slot)
-	{
-		if (!Items.IsValidIndex(Slot) || !Items[Slot])
-		{
-			continue;
-		}
-
-		if (Items[Slot]->GetItemType() != ItemType)
-		{
-			continue;
-		}
-
-		if (Items[Slot]->GetValue() <= 0)
-		{
-			Inventory->RemoveItem(Slot);
-			continue;
-		}
-
-		if (Inventory->UseItem(Slot))
-		{
-			if (Items.IsValidIndex(Slot) && Items[Slot] && Items[Slot]->GetValue() <= 0)
-			{
-				Inventory->RemoveItem(Slot);
-			}
-
-			return true;
-		}
-	}
-
-	return false;
-}
 
 bool UStudentSteeringComponent::MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem)
 {

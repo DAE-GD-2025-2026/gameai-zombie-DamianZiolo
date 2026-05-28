@@ -124,7 +124,6 @@ private:
 	);
 
 	// Inventory helpers
-	bool TryUseItemOfType(APawn* OwnerPawn, EItemType ItemType);
 	bool MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem);
 	bool IsInventoryFull(UInventoryComponent* Inventory) const;
 
