@@ -54,7 +54,7 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	const TArray<FKnownHouse>& KnownHouses = Perceptor->GetKnownHouses();
 	const TArray<FKnownItem>& KnownItems = Perceptor->GetKnownItems();
 	
-	UpdateBlackboardDecisionData(OwnerPawn, KnownZombies, KnownHouses, KnownItems);
+	//UpdateBlackboardDecisionData(OwnerPawn, KnownZombies, KnownHouses, KnownItems);
 	
 	if (GEngine)
 	{
