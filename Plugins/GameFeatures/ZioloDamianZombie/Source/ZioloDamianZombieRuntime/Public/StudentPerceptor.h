@@ -63,5 +63,5 @@ private:
 
 
 	APawn* GetControlledPawn() const;
-	const float MemoryDuration = 5.f;
+	const float MemoryDuration = 10.f;
 };

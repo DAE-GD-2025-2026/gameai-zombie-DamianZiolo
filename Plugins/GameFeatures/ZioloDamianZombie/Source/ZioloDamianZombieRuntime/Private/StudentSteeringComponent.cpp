@@ -78,7 +78,21 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	switch (CurrentMode)
 	{
 	case ESteeringMode::Flee:
-		MovementDirection = CalculateFleeDirection(KnownZombies, OwnerLocation);
+		if (HasWeapon(OwnerPawn))
+		{
+			MovementDirection = CalculateFleeDirection(KnownZombies, OwnerLocation);
+		}
+		else
+		{
+			MovementDirection = CalculateSearchWithFleeBlendDirection(
+				OwnerPawn,
+				Perceptor,
+				KnownZombies,
+				KnownItems,
+				KnownHouses,
+				OwnerLocation
+			);
+		}
 		break;
 
 	case ESteeringMode::SeekHouse:
@@ -493,6 +507,46 @@ FVector UStudentSteeringComponent::CalculateExitHouseDirection(APawn* OwnerPawn)
 
 	return Direction;
 	
+}
+
+FVector UStudentSteeringComponent::CalculateSearchWithFleeBlendDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+	const TArray<FKnownZombie>& KnownZombies, const TArray<FKnownItem>& KnownItems,
+	const TArray<FKnownHouse>& KnownHouses, const FVector& OwnerLocation)
+{
+	FVector SearchDirection =
+		CalculateSearchItemDirection(
+			OwnerPawn,
+			Perceptor,
+			KnownItems,
+			KnownHouses
+		);
+
+	FVector FleeDirection =
+		CalculateFleeDirection(
+			KnownZombies,
+			OwnerLocation
+		);
+
+	SearchDirection.Z = 0.0f;
+	FleeDirection.Z = 0.0f;
+
+	if (!SearchDirection.IsNearlyZero())
+	{
+		SearchDirection.Normalize();
+	}
+
+	if (!FleeDirection.IsNearlyZero())
+	{
+		FleeDirection.Normalize();
+	}
+
+	FVector BlendedDirection =
+		SearchDirection * SearchWeight +
+		FleeDirection * FleeBlendWeight;
+
+	BlendedDirection.Z = 0.0f;
+
+	return BlendedDirection;
 }
 
 bool UStudentSteeringComponent::HasKnownDesiredItem(

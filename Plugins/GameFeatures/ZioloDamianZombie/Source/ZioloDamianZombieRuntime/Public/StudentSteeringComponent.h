@@ -87,6 +87,19 @@ private:
 	FVector CalculateSeekHouseDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor, const TArray<FKnownHouse>& KnownHouses);
 	FVector CalculateExitHouseDirection(APawn* OwnerPawn);
 
+	//Blended steering 
+	float SearchWeight = 0.7f;
+	float FleeBlendWeight = 0.3f;
+
+	FVector CalculateSearchWithFleeBlendDirection(
+		APawn* OwnerPawn,
+		UStudentPerceptor* Perceptor,
+		const TArray<FKnownZombie>& KnownZombies,
+		const TArray<FKnownItem>& KnownItems,
+		const TArray<FKnownHouse>& KnownHouses,
+		const FVector& OwnerLocation
+	);
+	
 	// Item search / pickup
 	bool HasKnownDesiredItem(const TArray<FKnownItem>& KnownItems, FName DesiredItemType) const;
 	bool DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const;
