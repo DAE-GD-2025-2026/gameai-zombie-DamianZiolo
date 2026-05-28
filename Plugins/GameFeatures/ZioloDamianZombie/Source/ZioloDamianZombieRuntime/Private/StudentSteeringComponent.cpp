@@ -93,15 +93,6 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	case ESteeringMode::SearchItem:
 		MovementDirection = CalculateSearchItemDirection(OwnerPawn, Perceptor, KnownItems, KnownHouses);
 		break;
-	case ESteeringMode::UseMedkit:
-		TryUseItemOfType(OwnerPawn, EItemType::Medkit);
-		MovementDirection = CalculateWanderDirection(OwnerPawn);
-		break;
-
-	case ESteeringMode::UseFood:
-		TryUseItemOfType(OwnerPawn, EItemType::Food);
-		MovementDirection = CalculateWanderDirection(OwnerPawn);
-		break;
 	case ESteeringMode::ExitHouse:
 		MovementDirection = CalculateExitHouseDirection(OwnerPawn);
 		break;
@@ -1088,8 +1079,6 @@ FString UStudentSteeringComponent::GetSteeringModeName() const
 	case ESteeringMode::SeekHouse: return TEXT("SeekHouse");
 	case ESteeringMode::SeekItem: return TEXT("SeekItem");
 	case ESteeringMode::SearchItem: return TEXT("SearchItem");
-	case ESteeringMode::UseMedkit: return TEXT("UseMedkit");
-	case ESteeringMode::UseFood: return TEXT("UseFood");
 	case ESteeringMode::ExitHouse: return TEXT("ExitHouse");
 	default: return TEXT("Unknown");
 	}

@@ -87,8 +87,6 @@ private:
 		SeekHouse,
 		SeekItem,
 		SearchItem,
-		UseMedkit,
-		UseFood,
 		ExitHouse
 	};
 
