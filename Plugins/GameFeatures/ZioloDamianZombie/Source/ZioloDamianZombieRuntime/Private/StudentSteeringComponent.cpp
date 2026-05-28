@@ -642,18 +642,6 @@ FVector UStudentSteeringComponent::CalculateFollowPathDirection(APawn* OwnerPawn
 	return Direction;
 }
 
-bool UStudentSteeringComponent::HasKnownItem(const TArray<FKnownItem>& KnownItems) const
-{
-	for (const FKnownItem& Item : KnownItems)
-	{
-		if (IsValid(Item.Actor) && !Item.Actor->IsHidden())
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 FVector UStudentSteeringComponent::CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
 	const TArray<FKnownItem>& KnownItems)
 {

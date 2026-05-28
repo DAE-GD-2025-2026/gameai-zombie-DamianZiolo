@@ -45,24 +45,8 @@ public:
 	UPROPERTY(EditAnywhere, Category = "Steering")
 	float RotationSpeed = 6.0f;
 
-	// Combat tuning
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ShootingRange = 400.0f;
-
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ShootCooldown = 0.6f;
-
-	UPROPERTY(EditAnywhere, Category = "Combat")
-	float ShootFacingDotThreshold = 0.85f;
-
-	float LastShotTime = -999.0f;
-
 	// Combat helpers
 	bool HasWeapon(APawn* OwnerPawn) const;
-	bool TryShootClosestZombie(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies);
-	AActor* GetClosestZombie(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
-	void RotateTowardsTarget(APawn* OwnerPawn, const FVector& TargetLocation, float DeltaTime) const;
-	bool IsFacingTarget(APawn* OwnerPawn, const FVector& TargetLocation) const;
 
 	// House exit state
 	UPROPERTY()
@@ -104,7 +88,6 @@ private:
 	FVector CalculateExitHouseDirection(APawn* OwnerPawn);
 
 	// Item search / pickup
-	bool HasKnownItem(const TArray<FKnownItem>& KnownItems) const;
 	bool HasKnownDesiredItem(const TArray<FKnownItem>& KnownItems, FName DesiredItemType) const;
 	bool DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const;
 
