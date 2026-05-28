@@ -96,7 +96,6 @@ private:
 	float WanderAngle = 0.0f;
 
 	// Basic steering behaviors
-	bool HasNearbyThreat(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
 	FVector CalculateFleeDirection(const TArray<FKnownZombie>& KnownZombies, const FVector& OwnerLocation) const;
 	FVector CalculateWanderDirection(APawn* OwnerPawn);
 	void RotateTowardsMovement(APawn* OwnerPawn, const FVector& Direction, float DeltaTime) const;
@@ -128,7 +127,6 @@ private:
 
 	// Inventory helpers
 	bool TryUseItemOfType(APawn* OwnerPawn, EItemType ItemType);
-	bool HasItemOfType(APawn* OwnerPawn, EItemType ItemType) const;
 	bool MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem);
 	bool IsInventoryFull(UInventoryComponent* Inventory) const;
 
@@ -153,13 +151,6 @@ private:
 	// Blackboard communication
 	ESteeringMode ReadSteeringModeFromBlackboard(APawn* OwnerPawn) const;
 	FName ReadDesiredItemTypeFromBlackboard(APawn* OwnerPawn) const;
-
-	void UpdateBlackboardDecisionData(
-		APawn* OwnerPawn,
-		const TArray<FKnownZombie>& KnownZombies,
-		const TArray<FKnownHouse>& KnownHouses,
-		const TArray<FKnownItem>& KnownItems
-	) const;
 	
 	//Debugs
 	FString GetSteeringModeName() const;

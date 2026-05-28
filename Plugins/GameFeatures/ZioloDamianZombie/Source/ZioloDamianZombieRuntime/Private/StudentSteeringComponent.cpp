@@ -8,8 +8,7 @@
 #include "Common/InventoryComponent.h"
 #include "Survivor/SurvivorPawn.h"
 #include "DrawDebugHelpers.h"
-#include "Common/HealthComponent.h"
-#include "Common/StaminaComponent.h"
+
 
 
 // Sets default values for this component's properties
@@ -363,24 +362,6 @@ void UStudentSteeringComponent::ClearHouseExitState()
 	CurrentPathIndex = 0;
 }
 
-bool UStudentSteeringComponent::HasNearbyThreat(const TArray<FKnownZombie>& KnownZombies,
-                                                const FVector& OwnerLocation) const
-{
-	for (const FKnownZombie& Zombie : KnownZombies)
-	{
-		const float Distance =
-			FVector::Dist2D(
-				OwnerLocation,
-				Zombie.LastKnownLocation);
-
-		if (Distance <= ThreatRange)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
 
 FVector UStudentSteeringComponent::CalculateFleeDirection(
 	const TArray<FKnownZombie>& KnownZombies,
@@ -1019,29 +1000,6 @@ bool UStudentSteeringComponent::TryUseItemOfType(APawn* OwnerPawn, EItemType Ite
 	return false;
 }
 
-bool UStudentSteeringComponent::HasItemOfType(APawn* OwnerPawn, EItemType ItemType) const
-{
-	if (!OwnerPawn) return false;
-
-	UInventoryComponent* Inventory = OwnerPawn->FindComponentByClass<UInventoryComponent>();
-	if (!Inventory) return false;
-
-	for (ABaseItem* Item : Inventory->GetInventory())
-	{
-		if (!Item)
-		{
-			continue;
-		}
-
-		if (Item->GetItemType() == ItemType && Item->GetValue() > 0)
-		{
-			return true;
-		}
-	}
-
-	return false;
-}
-
 bool UStudentSteeringComponent::MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem)
 {
 	if (!Inventory || !NewItem) return false;
@@ -1118,86 +1076,6 @@ bool UStudentSteeringComponent::IsInventoryFull(UInventoryComponent* Inventory) 
 	}
 
 	return true;
-}
-
-
-
-void UStudentSteeringComponent::UpdateBlackboardDecisionData(APawn* OwnerPawn, const TArray<FKnownZombie>& KnownZombies,
-                                                             const TArray<FKnownHouse>& KnownHouses, const TArray<FKnownItem>& KnownItems) const
-{
-	if (!OwnerPawn) return;
-
-	AAIController* AIController = Cast<AAIController>(OwnerPawn->GetController());
-	if (!AIController) return;
-
-	UBlackboardComponent* Blackboard = AIController->GetBlackboardComponent();
-	if (!Blackboard) return;
-
-	const FVector OwnerLocation = OwnerPawn->GetActorLocation();
-
-	Blackboard->SetValueAsBool(TEXT("HasThreat"), HasNearbyThreat(KnownZombies, OwnerLocation));
-	Blackboard->SetValueAsBool(TEXT("HasKnownHouse"), HasKnownUnvisitedHouse(KnownHouses));
-
-	bool bHasKnownWeapon = false;
-	bool bHasKnownFood = false;
-	bool bHasKnownMedkit = false;
-
-	for (const FKnownItem& KnownItem : KnownItems)
-	{
-		ABaseItem* Item = Cast<ABaseItem>(KnownItem.Actor);
-		if (!Item || Item->IsHidden()) continue;
-
-		switch (Item->GetItemType())
-		{
-		case EItemType::Pistol:
-		case EItemType::Shotgun:
-			bHasKnownWeapon = true;
-			break;
-
-		case EItemType::Food:
-			bHasKnownFood = true;
-			break;
-
-		case EItemType::Medkit:
-			bHasKnownMedkit = true;
-			break;
-
-		default:
-			break;
-		}
-	}
-
-	Blackboard->SetValueAsBool(TEXT("HasKnownWeapon"), bHasKnownWeapon);
-	Blackboard->SetValueAsBool(TEXT("HasKnownFood"), bHasKnownFood);
-	Blackboard->SetValueAsBool(TEXT("HasKnownMedkit"), bHasKnownMedkit);
-	Blackboard->SetValueAsBool(TEXT("HasWeapon"), HasWeapon(OwnerPawn));
-	
-	//Food and Health
-	UHealthComponent* Health = OwnerPawn->FindComponentByClass<UHealthComponent>();
-	UStaminaComponent* Stamina = OwnerPawn->FindComponentByClass<UStaminaComponent>();
-
-	bool bHealthLow = false;
-	bool bStaminaLow = false;
-
-	if (Health)
-	{
-		bHealthLow =
-			static_cast<float>(Health->GetHealth()) /
-			static_cast<float>(Health->GetMaxHealth()) <= 0.5f;
-	}
-
-	if (Stamina)
-	{
-		bStaminaLow =
-			Stamina->GetCurrentStamina() /
-			Stamina->GetMaxStamina() <= 0.5f;
-	}
-
-	Blackboard->SetValueAsBool(TEXT("HealthLow"), bHealthLow);
-	Blackboard->SetValueAsBool(TEXT("StaminaLow"), bStaminaLow);
-	Blackboard->SetValueAsBool(TEXT("HasMedkit"), HasItemOfType(OwnerPawn, EItemType::Medkit));
-	Blackboard->SetValueAsBool(TEXT("HasFood"), HasItemOfType(OwnerPawn, EItemType::Food));
-	
 }
 
 //Debug
