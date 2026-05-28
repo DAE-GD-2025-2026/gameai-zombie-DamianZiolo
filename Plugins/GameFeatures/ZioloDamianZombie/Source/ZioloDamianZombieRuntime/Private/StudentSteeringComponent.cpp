@@ -750,7 +750,9 @@ void UStudentSteeringComponent::TryPickupNearbyItems(APawn* OwnerPawn, UStudentP
 		return;
 	}
 
-	for (const FKnownItem& KnownItem : KnownItems)
+	const TArray<FKnownItem> ItemsCopy = KnownItems;
+
+	for (const FKnownItem& KnownItem : ItemsCopy)
 	{
 		if (!IsValid(KnownItem.Actor) || KnownItem.Actor->IsHidden())
 		{
