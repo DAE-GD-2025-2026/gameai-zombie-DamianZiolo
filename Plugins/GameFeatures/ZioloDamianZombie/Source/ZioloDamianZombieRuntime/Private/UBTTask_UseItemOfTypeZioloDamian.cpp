@@ -1,14 +1,14 @@
-#include "UBTTask_UseItemOfType.h"
+#include "UBTTask_UseItemOfTypeZioloDamian.h"
 #include "AIController.h"
 #include "Common/InventoryComponent.h"
 #include "Items/BaseItem.h"
 
-UBTTask_UseItemOfType::UBTTask_UseItemOfType()
+UBTTask_UseItemOfTypeZioloDamian::UBTTask_UseItemOfTypeZioloDamian()
 {
 	NodeName = TEXT("Use Item Of Type");
 }
 
-EBTNodeResult::Type UBTTask_UseItemOfType::ExecuteTask(
+EBTNodeResult::Type UBTTask_UseItemOfTypeZioloDamian::ExecuteTask(
 	UBehaviorTreeComponent& OwnerComp,
 	uint8* NodeMemory)
 {

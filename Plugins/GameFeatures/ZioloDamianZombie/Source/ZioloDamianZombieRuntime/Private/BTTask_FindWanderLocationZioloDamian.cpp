@@ -1,15 +1,15 @@
-#include "BTTask_FindWanderLocation.h"
+#include "BTTask_FindWanderLocationZioloDamian.h"
 #include "AIController.h"
 #include "NavigationSystem.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/Pawn.h"
 
-UBTTask_FindWanderLocation::UBTTask_FindWanderLocation()
+UBTTask_FindWanderLocationZioloDamian::UBTTask_FindWanderLocationZioloDamian()
 {
 	NodeName = TEXT("Find Wander Location");
 }
 
-EBTNodeResult::Type UBTTask_FindWanderLocation::ExecuteTask(
+EBTNodeResult::Type UBTTask_FindWanderLocationZioloDamian::ExecuteTask(
 	UBehaviorTreeComponent& OwnerComp,
 	uint8* NodeMemory)
 {

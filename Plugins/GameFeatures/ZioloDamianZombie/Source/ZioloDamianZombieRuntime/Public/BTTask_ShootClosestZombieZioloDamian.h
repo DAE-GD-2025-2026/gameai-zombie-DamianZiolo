@@ -2,17 +2,17 @@
 
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
-#include "BTTask_ShootClosestZombie.generated.h"
+#include "BTTask_ShootClosestZombieZioloDamian.generated.h"
 
 struct FKnownZombie;
 
 UCLASS()
-class ZIOLODAMIANZOMBIERUNTIME_API UBTTask_ShootClosestZombie : public UBTTaskNode
+class ZIOLODAMIANZOMBIERUNTIME_API UBTTask_ShootClosestZombieZioloDamian : public UBTTaskNode
 {
 	GENERATED_BODY()
 
 public:
-	UBTTask_ShootClosestZombie();
+	UBTTask_ShootClosestZombieZioloDamian();
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(

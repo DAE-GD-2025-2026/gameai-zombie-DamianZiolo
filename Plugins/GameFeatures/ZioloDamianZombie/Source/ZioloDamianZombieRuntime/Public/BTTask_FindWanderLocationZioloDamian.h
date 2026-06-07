@@ -5,15 +5,15 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "BehaviorTree/BehaviorTreeTypes.h"
 #include "BehaviorTree/Blackboard/BlackboardKeyType_Vector.h"
-#include "BTTask_FindWanderLocation.generated.h"
+#include "BTTask_FindWanderLocationZioloDamian.generated.h"
 
 UCLASS()
-class ZIOLODAMIANZOMBIERUNTIME_API UBTTask_FindWanderLocation : public UBTTaskNode
+class ZIOLODAMIANZOMBIERUNTIME_API UBTTask_FindWanderLocationZioloDamian : public UBTTaskNode
 {
 	GENERATED_BODY()
 
 public:
-	UBTTask_FindWanderLocation();
+	UBTTask_FindWanderLocationZioloDamian();
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(

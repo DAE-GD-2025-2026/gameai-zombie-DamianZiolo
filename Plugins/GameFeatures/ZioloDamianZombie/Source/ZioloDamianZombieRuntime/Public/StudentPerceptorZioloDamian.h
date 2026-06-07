@@ -8,19 +8,19 @@
 #include "Perception/AISenseConfig_Sight.h"
 #include "Perception/AISenseConfig_Damage.h"
 #include "Perception/AISense_Damage.h"
-#include "AIWorldMemoryTypes.h"
-#include "StudentPerceptor.generated.h"
+#include "AIWorldMemoryTypesZioloDamian.h"
+#include "StudentPerceptorZioloDamian.generated.h"
 
 
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class ZIOLODAMIANZOMBIERUNTIME_API UStudentPerceptor : public UActorComponent
+class ZIOLODAMIANZOMBIERUNTIME_API UStudentPerceptorZioloDamian : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Sets default values for this component's properties
-	UStudentPerceptor();
+	UStudentPerceptorZioloDamian();
 	
 	virtual void BeginPlay() override;
 

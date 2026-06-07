@@ -1,4 +1,4 @@
-﻿#include "StudentPerceptor.h"
+﻿#include "StudentPerceptorZioloDamian.h"
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
@@ -9,22 +9,22 @@
 #include "Items/BaseItem.h"
 
 
-UStudentPerceptor::UStudentPerceptor()
+UStudentPerceptorZioloDamian::UStudentPerceptorZioloDamian()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 }
 
-void UStudentPerceptor::BeginPlay()
+void UStudentPerceptorZioloDamian::BeginPlay()
 {
 	Super::BeginPlay();
 	
 	if (auto PerceptionComp = GetOwner()->GetComponentByClass<UAIPerceptionComponent>())
 	{
-		PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &UStudentPerceptor::OnPerceptionUpdated);
+		PerceptionComp->OnTargetPerceptionUpdated.AddDynamic(this, &UStudentPerceptorZioloDamian::OnPerceptionUpdated);
 	}
 }
 
-void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
+void UStudentPerceptorZioloDamian::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 {
 	if (Stimulus.Type == UAISense::GetSenseID(UAISense_Damage::StaticClass()) )
 	{
@@ -50,7 +50,7 @@ void UStudentPerceptor::OnPerceptionUpdated(AActor* Actor, FAIStimulus Stimulus)
 	
 }
 
-void UStudentPerceptor::HandleHousePerception(AActor* Actor)
+void UStudentPerceptorZioloDamian::HandleHousePerception(AActor* Actor)
 {
 	if (!Actor) return;
 	
@@ -72,12 +72,12 @@ void UStudentPerceptor::HandleHousePerception(AActor* Actor)
 	
 }
 
-bool UStudentPerceptor::IsHouse(AActor* Actor) const
+bool UStudentPerceptorZioloDamian::IsHouse(AActor* Actor) const
 {
 	return Actor && Actor->IsA(AHouse::StaticClass());
 }
 
-void UStudentPerceptor::MarkHouseVisited(AActor* Actor)
+void UStudentPerceptorZioloDamian::MarkHouseVisited(AActor* Actor)
 {
 	if (!Actor) return;
 	
@@ -91,7 +91,7 @@ void UStudentPerceptor::MarkHouseVisited(AActor* Actor)
 	}
 }
 
-void UStudentPerceptor::HandleZombiePerception(AActor* Actor)
+void UStudentPerceptorZioloDamian::HandleZombiePerception(AActor* Actor)
 {
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 	
@@ -113,7 +113,7 @@ void UStudentPerceptor::HandleZombiePerception(AActor* Actor)
 	KnownZombies.Add(NewZombie);
 }
 
-void UStudentPerceptor::CleanupExpiredZombies()
+void UStudentPerceptorZioloDamian::CleanupExpiredZombies()
 {
 	const float CurrentTime = GetWorld()->GetTimeSeconds();
 
@@ -133,7 +133,7 @@ void UStudentPerceptor::CleanupExpiredZombies()
 	}
 }
 
-void UStudentPerceptor::HandleItemPerception(AActor* Actor)
+void UStudentPerceptorZioloDamian::HandleItemPerception(AActor* Actor)
 {
 	if (!Actor) return;
 	if (Actor->GetClass()->GetName().Contains(TEXT("BP_Garbage")))
@@ -158,12 +158,12 @@ void UStudentPerceptor::HandleItemPerception(AActor* Actor)
 	
 }
 
-bool UStudentPerceptor::IsItem(AActor* Actor) const
+bool UStudentPerceptorZioloDamian::IsItem(AActor* Actor) const
 {
 	return Actor && Actor->IsA(ABaseItem::StaticClass());
 }
 
-void UStudentPerceptor::CleanupKnownItems()
+void UStudentPerceptorZioloDamian::CleanupKnownItems()
 {
 	for (int i = KnownItems.Num() - 1; i >= 0; --i)
 	{
@@ -177,7 +177,7 @@ void UStudentPerceptor::CleanupKnownItems()
 	}
 }
 
-void UStudentPerceptor::HandleDamagePerception(const FAIStimulus& Stimulus)
+void UStudentPerceptorZioloDamian::HandleDamagePerception(const FAIStimulus& Stimulus)
 {
 	APawn* Survivor = GetControlledPawn();
 	if (!Survivor)
@@ -211,7 +211,7 @@ void UStudentPerceptor::HandleDamagePerception(const FAIStimulus& Stimulus)
 	}
 }
 
-void UStudentPerceptor::RemoveKnownItem(AActor* ItemActor)
+void UStudentPerceptorZioloDamian::RemoveKnownItem(AActor* ItemActor)
 {
 	if (!ItemActor) return;
 	
@@ -225,12 +225,12 @@ void UStudentPerceptor::RemoveKnownItem(AActor* ItemActor)
 	}
 }
 
-bool UStudentPerceptor::IsZombie(AActor* Actor) const
+bool UStudentPerceptorZioloDamian::IsZombie(AActor* Actor) const
 {
 	return Actor && Actor->IsA(ABaseZombie::StaticClass());
 }
 
-APawn* UStudentPerceptor::GetControlledPawn() const
+APawn* UStudentPerceptorZioloDamian::GetControlledPawn() const
 {
 	AActor* Owner = GetOwner();
 	if (!Owner) return nullptr;
@@ -242,19 +242,19 @@ APawn* UStudentPerceptor::GetControlledPawn() const
 	return Cast<APawn>(Owner);
 }
 
-const TArray<FKnownZombie>& UStudentPerceptor::GetKnownZombies()
+const TArray<FKnownZombie>& UStudentPerceptorZioloDamian::GetKnownZombies()
 {
 	CleanupExpiredZombies();
 	return KnownZombies;
 }
 
-const TArray<FKnownItem>& UStudentPerceptor::GetKnownItems()
+const TArray<FKnownItem>& UStudentPerceptorZioloDamian::GetKnownItems()
 {
 	CleanupKnownItems();
 	return KnownItems;
 }
 
-const TArray<FKnownHouse>& UStudentPerceptor::GetKnownHouses() const
+const TArray<FKnownHouse>& UStudentPerceptorZioloDamian::GetKnownHouses() const
 {
 	return KnownHouses;
 }

@@ -1,17 +1,17 @@
-#include "BTTask_ShootClosestZombie.h"
+#include "BTTask_ShootClosestZombieZioloDamian.h"
 
 #include "AIController.h"
-#include "StudentPerceptor.h"
-#include "AIWorldMemoryTypes.h"
+#include "StudentPerceptorZioloDamian.h"
+#include "AIWorldMemoryTypesZioloDamian.h"
 #include "Common/InventoryComponent.h"
 #include "Items/BaseItem.h"
 
-UBTTask_ShootClosestZombie::UBTTask_ShootClosestZombie()
+UBTTask_ShootClosestZombieZioloDamian::UBTTask_ShootClosestZombieZioloDamian()
 {
 	NodeName = TEXT("Shoot Closest Zombie");
 }
 
-EBTNodeResult::Type UBTTask_ShootClosestZombie::ExecuteTask(
+EBTNodeResult::Type UBTTask_ShootClosestZombieZioloDamian::ExecuteTask(
 	UBehaviorTreeComponent& OwnerComp,
 	uint8* NodeMemory)
 {
@@ -27,8 +27,8 @@ EBTNodeResult::Type UBTTask_ShootClosestZombie::ExecuteTask(
 		return EBTNodeResult::Failed;
 	}
 
-	UStudentPerceptor* Perceptor =
-		OwnerPawn->FindComponentByClass<UStudentPerceptor>();
+	UStudentPerceptorZioloDamian* Perceptor =
+		OwnerPawn->FindComponentByClass<UStudentPerceptorZioloDamian>();
 
 	if (!Perceptor)
 	{
@@ -87,7 +87,7 @@ EBTNodeResult::Type UBTTask_ShootClosestZombie::ExecuteTask(
 	return EBTNodeResult::Failed;
 }
 
-AActor* UBTTask_ShootClosestZombie::GetClosestZombie(
+AActor* UBTTask_ShootClosestZombieZioloDamian::GetClosestZombie(
 	const TArray<FKnownZombie>& KnownZombies,
 	const FVector& OwnerLocation) const
 {
@@ -114,7 +114,7 @@ AActor* UBTTask_ShootClosestZombie::GetClosestZombie(
 	return ClosestZombie;
 }
 
-bool UBTTask_ShootClosestZombie::IsFacingTarget(
+bool UBTTask_ShootClosestZombieZioloDamian::IsFacingTarget(
 	APawn* OwnerPawn,
 	const FVector& TargetLocation) const
 {
@@ -142,7 +142,7 @@ bool UBTTask_ShootClosestZombie::IsFacingTarget(
 	return Dot >= ShootFacingDotThreshold;
 }
 
-bool UBTTask_ShootClosestZombie::TryUseWeapon(APawn* OwnerPawn) const
+bool UBTTask_ShootClosestZombieZioloDamian::TryUseWeapon(APawn* OwnerPawn) const
 {
 	if (!OwnerPawn)
 	{

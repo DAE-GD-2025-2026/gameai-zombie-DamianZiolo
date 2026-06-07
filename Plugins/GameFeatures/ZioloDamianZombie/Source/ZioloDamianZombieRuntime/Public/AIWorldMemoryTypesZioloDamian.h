@@ -1,7 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "AIWorldMemoryTypes.generated.h"
+#include "AIWorldMemoryTypesZioloDamian.generated.h"
 
 USTRUCT()
 struct FKnownZombie

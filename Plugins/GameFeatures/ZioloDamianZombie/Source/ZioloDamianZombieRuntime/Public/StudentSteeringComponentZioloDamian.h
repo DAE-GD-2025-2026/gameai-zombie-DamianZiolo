@@ -2,24 +2,24 @@
 
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
-#include "AIWorldMemoryTypes.h"
+#include "AIWorldMemoryTypesZioloDamian.h"
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
 #include "Items/ItemType.h"
-#include "StudentSteeringComponent.generated.h"
+#include "StudentSteeringComponentZioloDamian.generated.h"
 
-class UStudentPerceptor;
+class UStudentPerceptorZioloDamian;
 class ABaseItem;
 class UInventoryComponent;
 
 UCLASS(ClassGroup=(Custom), meta=(BlueprintSpawnableComponent))
-class ZIOLODAMIANZOMBIERUNTIME_API UStudentSteeringComponent : public UActorComponent
+class ZIOLODAMIANZOMBIERUNTIME_API UStudentSteeringComponentZioloDamian : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:
 	// Unreal lifecycle
-	UStudentSteeringComponent();
+	UStudentSteeringComponentZioloDamian();
 
 protected:
 	// Called when the component starts
@@ -84,7 +84,7 @@ private:
 
 	// House search / exploration
 	bool HasKnownUnvisitedHouse(const TArray<FKnownHouse>& KnownHouses) const;
-	FVector CalculateSeekHouseDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor, const TArray<FKnownHouse>& KnownHouses);
+	FVector CalculateSeekHouseDirection(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor, const TArray<FKnownHouse>& KnownHouses);
 	FVector CalculateExitHouseDirection(APawn* OwnerPawn);
 
 	//Blended steering 
@@ -93,7 +93,7 @@ private:
 
 	FVector CalculateSearchWithFleeBlendDirection(
 		APawn* OwnerPawn,
-		UStudentPerceptor* Perceptor,
+		UStudentPerceptorZioloDamian* Perceptor,
 		const TArray<FKnownZombie>& KnownZombies,
 		const TArray<FKnownItem>& KnownItems,
 		const TArray<FKnownHouse>& KnownHouses,
@@ -104,18 +104,18 @@ private:
 	bool HasKnownDesiredItem(const TArray<FKnownItem>& KnownItems, FName DesiredItemType) const;
 	bool DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const;
 
-	FVector CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor, const TArray<FKnownItem>& KnownItems);
+	FVector CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor, const TArray<FKnownItem>& KnownItems);
 	FVector CalculateSearchItemDirection(
 		APawn* OwnerPawn,
-		UStudentPerceptor* Perceptor,
+		UStudentPerceptorZioloDamian* Perceptor,
 		const TArray<FKnownItem>& KnownItems,
 		const TArray<FKnownHouse>& KnownHouses
 	);
 
-	bool TryPickupItem(APawn* OwnerPawn, UStudentPerceptor* Perceptor, AActor* ItemActor);
+	bool TryPickupItem(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor, AActor* ItemActor);
 	void TryPickupNearbyItems(
 		APawn* OwnerPawn,
-		UStudentPerceptor* Perceptor,
+		UStudentPerceptorZioloDamian* Perceptor,
 		const TArray<FKnownItem>& KnownItems
 	);
 

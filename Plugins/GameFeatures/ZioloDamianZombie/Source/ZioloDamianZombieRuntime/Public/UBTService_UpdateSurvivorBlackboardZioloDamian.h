@@ -3,15 +3,15 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTService.h"
 #include "Items/ItemType.h"
-#include "AIWorldMemoryTypes.h"
-#include "UBTService_UpdateSurvivorBlackboard.generated.h"
+#include "AIWorldMemoryTypesZioloDamian.h"
+#include "UBTService_UpdateSurvivorBlackboardZioloDamian.generated.h"
 UCLASS()
-class ZIOLODAMIANZOMBIERUNTIME_API UBTService_UpdateSurvivorBlackboard : public UBTService
+class ZIOLODAMIANZOMBIERUNTIME_API UBTService_UpdateSurvivorBlackboardZioloDamian : public UBTService
 {
 	GENERATED_BODY()
 
 public:
-	UBTService_UpdateSurvivorBlackboard();
+	UBTService_UpdateSurvivorBlackboardZioloDamian();
 
 protected:
 	virtual void TickNode(

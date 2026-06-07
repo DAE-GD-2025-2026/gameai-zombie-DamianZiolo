@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
-class FZioloDamianZombieRuntimeModule : public IModuleInterface
+class FZioloDamianZombieRuntimeModuleZioloDamian : public IModuleInterface
 {
 public:
 	//~IModuleInterface

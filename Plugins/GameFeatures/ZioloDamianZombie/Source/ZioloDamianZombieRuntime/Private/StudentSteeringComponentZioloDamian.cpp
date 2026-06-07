@@ -1,8 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "StudentSteeringComponent.h"
-#include "StudentPerceptor.h"
+#include "StudentSteeringComponentZioloDamian.h"
+#include "StudentPerceptorZioloDamian.h"
 #include "Items/BaseItem.h"
 #include "Common/InventoryComponent.h"
 #include "Survivor/SurvivorPawn.h"
@@ -11,7 +11,7 @@
 
 
 // Sets default values for this component's properties
-UStudentSteeringComponent::UStudentSteeringComponent()
+UStudentSteeringComponentZioloDamian::UStudentSteeringComponentZioloDamian()
 {
 	// Set this component to be initialized when the game starts, and to be ticked every frame.  You can turn these features
 	// off to improve performance if you don't need them.
@@ -22,7 +22,7 @@ UStudentSteeringComponent::UStudentSteeringComponent()
 
 
 // Called when the game starts
-void UStudentSteeringComponent::BeginPlay()
+void UStudentSteeringComponentZioloDamian::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -32,7 +32,7 @@ void UStudentSteeringComponent::BeginPlay()
 
 
 // Called every frame
-void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UStudentSteeringComponentZioloDamian::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 	
@@ -42,7 +42,7 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 		return;
 	}
 	
-	UStudentPerceptor* Perceptor = OwnerPawn->FindComponentByClass<UStudentPerceptor>();
+	UStudentPerceptorZioloDamian* Perceptor = OwnerPawn->FindComponentByClass<UStudentPerceptorZioloDamian>();
 	if (!Perceptor)
 	{
 		return;
@@ -131,7 +131,7 @@ void UStudentSteeringComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	RotateTowardsMovement(OwnerPawn, MovementDirection, DeltaTime);
 }
 
-bool UStudentSteeringComponent::HasWeapon(APawn* OwnerPawn) const
+bool UStudentSteeringComponentZioloDamian::HasWeapon(APawn* OwnerPawn) const
 {
 	if (!OwnerPawn) return false;
 
@@ -172,7 +172,7 @@ bool UStudentSteeringComponent::HasWeapon(APawn* OwnerPawn) const
 	return false;
 }
 
-bool UStudentSteeringComponent::IsInsideHouseBounds(APawn* OwnerPawn, AActor* HouseActor) const
+bool UStudentSteeringComponentZioloDamian::IsInsideHouseBounds(APawn* OwnerPawn, AActor* HouseActor) const
 {
 	if (!OwnerPawn || !HouseActor)
 	{
@@ -191,7 +191,7 @@ bool UStudentSteeringComponent::IsInsideHouseBounds(APawn* OwnerPawn, AActor* Ho
 		FMath::Abs(Location.Y - Origin.Y) <= Extent.Y + Tolerance;
 }
 
-FVector UStudentSteeringComponent::PickRandomExitLocationNearHouse(AActor* HouseActor) const
+FVector UStudentSteeringComponentZioloDamian::PickRandomExitLocationNearHouse(AActor* HouseActor) const
 {
 	if (!HouseActor)
 	{
@@ -219,7 +219,7 @@ FVector UStudentSteeringComponent::PickRandomExitLocationNearHouse(AActor* House
 	return Target;
 }
 
-void UStudentSteeringComponent::ClearHouseExitState()
+void UStudentSteeringComponentZioloDamian::ClearHouseExitState()
 {
 	LastVisitedHouse = nullptr;
 	ExitHouseTarget = FVector::ZeroVector;
@@ -229,7 +229,7 @@ void UStudentSteeringComponent::ClearHouseExitState()
 }
 
 
-FVector UStudentSteeringComponent::CalculateFleeDirection(
+FVector UStudentSteeringComponentZioloDamian::CalculateFleeDirection(
 	const TArray<FKnownZombie>& KnownZombies,
 	const FVector& OwnerLocation) const
 {
@@ -259,7 +259,7 @@ FVector UStudentSteeringComponent::CalculateFleeDirection(
 	return FleeDirection;
 }
 
-FVector UStudentSteeringComponent::CalculateWanderDirection(
+FVector UStudentSteeringComponentZioloDamian::CalculateWanderDirection(
 	APawn* OwnerPawn)
 {
 	if (!OwnerPawn)
@@ -317,7 +317,7 @@ FVector UStudentSteeringComponent::CalculateWanderDirection(
 	return Direction;
 }
 
-void UStudentSteeringComponent::RotateTowardsMovement(
+void UStudentSteeringComponentZioloDamian::RotateTowardsMovement(
 	APawn* OwnerPawn,
 	const FVector& Direction,
 	float DeltaTime) const
@@ -348,7 +348,7 @@ void UStudentSteeringComponent::RotateTowardsMovement(
 	OwnerPawn->SetActorRotation(NewRotation);
 }
 
-bool UStudentSteeringComponent::HasKnownUnvisitedHouse(const TArray<FKnownHouse>& KnownHouses) const
+bool UStudentSteeringComponentZioloDamian::HasKnownUnvisitedHouse(const TArray<FKnownHouse>& KnownHouses) const
 {
 	for (const FKnownHouse& House : KnownHouses)
 	{
@@ -361,9 +361,9 @@ bool UStudentSteeringComponent::HasKnownUnvisitedHouse(const TArray<FKnownHouse>
 	return false;
 }
 
-FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
+FVector UStudentSteeringComponentZioloDamian::CalculateSeekHouseDirection(
 	APawn* OwnerPawn,
-	UStudentPerceptor* Perceptor,
+	UStudentPerceptorZioloDamian* Perceptor,
 	const TArray<FKnownHouse>& KnownHouses)
 {
 	if (!OwnerPawn)
@@ -433,7 +433,7 @@ FVector UStudentSteeringComponent::CalculateSeekHouseDirection(
 	return Direction;
 }
 
-FVector UStudentSteeringComponent::CalculateSearchItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+FVector UStudentSteeringComponentZioloDamian::CalculateSearchItemDirection(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor,
 	const TArray<FKnownItem>& KnownItems, const TArray<FKnownHouse>& KnownHouses)
 {
 	if (!OwnerPawn)
@@ -477,7 +477,7 @@ FVector UStudentSteeringComponent::CalculateSearchItemDirection(APawn* OwnerPawn
 	
 }
 
-FVector UStudentSteeringComponent::CalculateExitHouseDirection(APawn* OwnerPawn)
+FVector UStudentSteeringComponentZioloDamian::CalculateExitHouseDirection(APawn* OwnerPawn)
 {
 	if (!OwnerPawn || !LastVisitedHouse)
 	{
@@ -509,7 +509,7 @@ FVector UStudentSteeringComponent::CalculateExitHouseDirection(APawn* OwnerPawn)
 	
 }
 
-FVector UStudentSteeringComponent::CalculateSearchWithFleeBlendDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+FVector UStudentSteeringComponentZioloDamian::CalculateSearchWithFleeBlendDirection(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor,
 	const TArray<FKnownZombie>& KnownZombies, const TArray<FKnownItem>& KnownItems,
 	const TArray<FKnownHouse>& KnownHouses, const FVector& OwnerLocation)
 {
@@ -549,7 +549,7 @@ FVector UStudentSteeringComponent::CalculateSearchWithFleeBlendDirection(APawn* 
 	return BlendedDirection;
 }
 
-bool UStudentSteeringComponent::HasKnownDesiredItem(
+bool UStudentSteeringComponentZioloDamian::HasKnownDesiredItem(
 	const TArray<FKnownItem>& KnownItems,
 	FName DesiredItemType) const
 {
@@ -580,7 +580,7 @@ bool UStudentSteeringComponent::HasKnownDesiredItem(
 	return false;
 }
 
-bool UStudentSteeringComponent::DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const
+bool UStudentSteeringComponentZioloDamian::DoesItemMatchDesiredType(ABaseItem* Item, FName DesiredItemType) const
 {
 	if (!Item)
 	{
@@ -622,7 +622,7 @@ bool UStudentSteeringComponent::DoesItemMatchDesiredType(ABaseItem* Item, FName 
 	return false;
 }
 
-void UStudentSteeringComponent::TryPickupNearbyItems(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+void UStudentSteeringComponentZioloDamian::TryPickupNearbyItems(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor,
 	const TArray<FKnownItem>& KnownItems)
 {
 	if (!OwnerPawn || !Perceptor)
@@ -651,7 +651,7 @@ void UStudentSteeringComponent::TryPickupNearbyItems(APawn* OwnerPawn, UStudentP
 }
 
 
-void UStudentSteeringComponent::BuildPathToLocation(APawn* OwnerPawn, const FVector& TargetLocation)
+void UStudentSteeringComponentZioloDamian::BuildPathToLocation(APawn* OwnerPawn, const FVector& TargetLocation)
 {
 	ASurvivorPawn* Survivor = Cast<ASurvivorPawn>(OwnerPawn);
 	if (!Survivor)
@@ -665,7 +665,7 @@ void UStudentSteeringComponent::BuildPathToLocation(APawn* OwnerPawn, const FVec
 	CurrentPathIndex = CurrentPath.Num() > 1 ? 1 : 0;
 }
 
-FVector UStudentSteeringComponent::CalculateFollowPathDirection(APawn* OwnerPawn)
+FVector UStudentSteeringComponentZioloDamian::CalculateFollowPathDirection(APawn* OwnerPawn)
 {
 	if (!OwnerPawn || CurrentPath.IsEmpty() || !CurrentPath.IsValidIndex(CurrentPathIndex))
 	{
@@ -696,7 +696,7 @@ FVector UStudentSteeringComponent::CalculateFollowPathDirection(APawn* OwnerPawn
 	return Direction;
 }
 
-FVector UStudentSteeringComponent::CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptor* Perceptor,
+FVector UStudentSteeringComponentZioloDamian::CalculateSeekItemDirection(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor,
 	const TArray<FKnownItem>& KnownItems)
 {
 	if (!OwnerPawn || !Perceptor) return FVector::ZeroVector;
@@ -768,7 +768,7 @@ FVector UStudentSteeringComponent::CalculateSeekItemDirection(APawn* OwnerPawn, 
 	
 }
 
-bool UStudentSteeringComponent::TryPickupItem(APawn* OwnerPawn, UStudentPerceptor* Perceptor, AActor* ItemActor)
+bool UStudentSteeringComponentZioloDamian::TryPickupItem(APawn* OwnerPawn, UStudentPerceptorZioloDamian* Perceptor, AActor* ItemActor)
 {
 	if (!OwnerPawn || !Perceptor || !ItemActor) return false;
 	
@@ -816,7 +816,7 @@ bool UStudentSteeringComponent::TryPickupItem(APawn* OwnerPawn, UStudentPercepto
 	return false;
 }
 
-UStudentSteeringComponent::ESteeringMode UStudentSteeringComponent::ReadSteeringModeFromBlackboard(
+UStudentSteeringComponentZioloDamian::ESteeringMode UStudentSteeringComponentZioloDamian::ReadSteeringModeFromBlackboard(
 	APawn* OwnerPawn) const
 {
 	if (!OwnerPawn) return ESteeringMode::Wander;
@@ -838,7 +838,7 @@ UStudentSteeringComponent::ESteeringMode UStudentSteeringComponent::ReadSteering
 	return ESteeringMode::Wander;
 }
 
-FName UStudentSteeringComponent::ReadDesiredItemTypeFromBlackboard(APawn* OwnerPawn) const
+FName UStudentSteeringComponentZioloDamian::ReadDesiredItemTypeFromBlackboard(APawn* OwnerPawn) const
 {
 	if (!OwnerPawn) return NAME_None;
 
@@ -852,7 +852,7 @@ FName UStudentSteeringComponent::ReadDesiredItemTypeFromBlackboard(APawn* OwnerP
 }
 
 
-bool UStudentSteeringComponent::MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem)
+bool UStudentSteeringComponentZioloDamian::MakeRoomForImportantItem(UInventoryComponent* Inventory, ABaseItem* NewItem)
 {
 	if (!Inventory || !NewItem) return false;
 
@@ -915,7 +915,7 @@ bool UStudentSteeringComponent::MakeRoomForImportantItem(UInventoryComponent* In
 	return false;
 }
 
-bool UStudentSteeringComponent::IsInventoryFull(UInventoryComponent* Inventory) const
+bool UStudentSteeringComponentZioloDamian::IsInventoryFull(UInventoryComponent* Inventory) const
 {
 	if (!Inventory) return true;
 
@@ -931,7 +931,7 @@ bool UStudentSteeringComponent::IsInventoryFull(UInventoryComponent* Inventory) 
 }
 
 //Debug
-FString UStudentSteeringComponent::GetSteeringModeName() const
+FString UStudentSteeringComponentZioloDamian::GetSteeringModeName() const
 {
 	switch (CurrentMode)
 	{
@@ -945,7 +945,7 @@ FString UStudentSteeringComponent::GetSteeringModeName() const
 	}
 }
 
-void UStudentSteeringComponent::DrawSteeringDebug(
+void UStudentSteeringComponentZioloDamian::DrawSteeringDebug(
 	APawn* OwnerPawn,
 	const TArray<FKnownItem>& KnownItems,
 	const TArray<FKnownHouse>& KnownHouses) const

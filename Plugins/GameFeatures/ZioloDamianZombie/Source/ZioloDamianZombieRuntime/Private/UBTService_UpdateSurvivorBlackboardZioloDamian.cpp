@@ -1,14 +1,14 @@
-#include "UBTService_UpdateSurvivorBlackboard.h"
+#include "UBTService_UpdateSurvivorBlackboardZioloDamian.h"
 
 #include "AIController.h"
 #include "BehaviorTree/BlackboardComponent.h"
-#include "StudentPerceptor.h"
+#include "StudentPerceptorZioloDamian.h"
 #include "Common/InventoryComponent.h"
 #include "Common/HealthComponent.h"
 #include "Common/StaminaComponent.h"
 #include "Items/BaseItem.h"
 
-UBTService_UpdateSurvivorBlackboard::UBTService_UpdateSurvivorBlackboard()
+UBTService_UpdateSurvivorBlackboardZioloDamian::UBTService_UpdateSurvivorBlackboardZioloDamian()
 {
 	NodeName = TEXT("Update Survivor Blackboard");
 
@@ -16,7 +16,7 @@ UBTService_UpdateSurvivorBlackboard::UBTService_UpdateSurvivorBlackboard()
 	RandomDeviation = 0.05f;
 }
 
-void UBTService_UpdateSurvivorBlackboard::TickNode(
+void UBTService_UpdateSurvivorBlackboardZioloDamian::TickNode(
 	UBehaviorTreeComponent& OwnerComp,
 	uint8* NodeMemory,
 	float DeltaSeconds)
@@ -41,8 +41,8 @@ void UBTService_UpdateSurvivorBlackboard::TickNode(
 		return;
 	}
 
-	UStudentPerceptor* Perceptor =
-		OwnerPawn->FindComponentByClass<UStudentPerceptor>();
+	UStudentPerceptorZioloDamian* Perceptor =
+		OwnerPawn->FindComponentByClass<UStudentPerceptorZioloDamian>();
 
 	if (!Perceptor)
 	{
@@ -128,7 +128,7 @@ void UBTService_UpdateSurvivorBlackboard::TickNode(
 }
 
 //====Helpers=====
-bool UBTService_UpdateSurvivorBlackboard::HasWeapon(APawn* OwnerPawn) const
+bool UBTService_UpdateSurvivorBlackboardZioloDamian::HasWeapon(APawn* OwnerPawn) const
 {
 	if (!OwnerPawn)
 	{
@@ -161,7 +161,7 @@ bool UBTService_UpdateSurvivorBlackboard::HasWeapon(APawn* OwnerPawn) const
 	return false;
 }
 
-bool UBTService_UpdateSurvivorBlackboard::HasItemOfType(
+bool UBTService_UpdateSurvivorBlackboardZioloDamian::HasItemOfType(
 	APawn* OwnerPawn,
 	EItemType ItemType) const
 {
@@ -194,7 +194,7 @@ bool UBTService_UpdateSurvivorBlackboard::HasItemOfType(
 	return false;
 }
 
-bool UBTService_UpdateSurvivorBlackboard::HasNearbyThreat(
+bool UBTService_UpdateSurvivorBlackboardZioloDamian::HasNearbyThreat(
 	const TArray<FKnownZombie>& KnownZombies,
 	const FVector& OwnerLocation) const
 {
@@ -214,7 +214,7 @@ bool UBTService_UpdateSurvivorBlackboard::HasNearbyThreat(
 	return false;
 }
 
-bool UBTService_UpdateSurvivorBlackboard::HasKnownUnvisitedHouse(
+bool UBTService_UpdateSurvivorBlackboardZioloDamian::HasKnownUnvisitedHouse(
 	const TArray<FKnownHouse>& KnownHouses) const
 {
 	for (const FKnownHouse& House : KnownHouses)

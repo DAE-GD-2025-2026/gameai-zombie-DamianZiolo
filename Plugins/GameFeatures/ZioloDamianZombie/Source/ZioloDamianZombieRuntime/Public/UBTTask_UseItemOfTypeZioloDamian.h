@@ -3,15 +3,15 @@
 #include "CoreMinimal.h"
 #include "BehaviorTree/BTTaskNode.h"
 #include "Items/ItemType.h"
-#include "UBTTask_UseItemOfType.generated.h"
+#include "UBTTask_UseItemOfTypeZioloDamian.generated.h"
 
 UCLASS()
-class ZIOLODAMIANZOMBIERUNTIME_API UBTTask_UseItemOfType : public UBTTaskNode
+class ZIOLODAMIANZOMBIERUNTIME_API UBTTask_UseItemOfTypeZioloDamian : public UBTTaskNode
 {
 	GENERATED_BODY()
 
 public:
-	UBTTask_UseItemOfType();
+	UBTTask_UseItemOfTypeZioloDamian();
 
 protected:
 	virtual EBTNodeResult::Type ExecuteTask(
